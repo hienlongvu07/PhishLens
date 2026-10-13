@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 300">
+ <style>
+  @keyframes nudge { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+  @keyframes line-draw { 0%,100% { stroke-dashoffset: 150; } 55%,85% { stroke-dashoffset: 0; } }
+  @keyframes warning-pulse { 0%,100% { transform: scale(1); opacity: .84; } 50% { transform: scale(1.08); opacity: 1; } }
+  .float-orbit { animation: nudge 5.5s ease-in-out infinite; }
+  .commission-line { stroke-dasharray: 150; animation: line-draw 6s ease-in-out infinite; }
+  .warning { transform-box: fill-box; transform-origin: center; animation: warning-pulse 3.8s 1s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
+ </style>
+ <rect width="560" height="300" rx="20" fill="#f4ead7"/><circle class="float-orbit" cx="91" cy="69" r="54" fill="#eed7ae"/>
+ <rect x="129" y="49" width="207" height="204" rx="18" fill="#fffdf7" stroke="#315c50" stroke-width="4"/>
+ <rect x="151" y="71" width="163" height="31" rx="10" fill="#e4f1e9"/><path d="M168 87h102" stroke="#79aa93" stroke-width="7" stroke-linecap="round"/>
+ <rect x="151" y="118" width="163" height="52" rx="9" fill="#f6eee2"/><circle cx="174" cy="144" r="11" fill="#d48362"/><path d="M195 139h99M195 153h73" stroke="#a99580" stroke-width="6" stroke-linecap="round"/>
+ <rect x="151" y="184" width="163" height="44" rx="9" fill="#f7d695"/><path d="M171 206h82" stroke="#9a7545" stroke-width="7" stroke-linecap="round"/>
+ <rect x="369" y="84" width="109" height="109" rx="54" fill="#167a69"/><path d="M399 139h49M424 114v50" stroke="#fffdf7" stroke-width="10" stroke-linecap="round"/>
+ <path class="commission-line" d="M374 216l42-20 34 23 38-40" fill="none" stroke="#d47758" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+ <circle cx="489" cy="96" r="23" fill="#fffdf7"/><path class="warning" d="M489 84v15M489 106v1" stroke="#d47758" stroke-width="5" stroke-linecap="round"/>
+</svg>

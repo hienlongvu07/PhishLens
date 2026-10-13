@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img">
+  <style>
+    @keyframes drift { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+    @keyframes breathe { 0%,100% { opacity: .78; transform: scale(1); } 50% { opacity: 1; transform: scale(1.07); } }
+    .sun { transform-box: fill-box; transform-origin: center; animation: breathe 5s ease-in-out infinite; }
+    .float-a { animation: drift 5s ease-in-out infinite; }
+    .float-b { animation: drift 6s 1s ease-in-out infinite; }
+    .spark { transform-box: fill-box; transform-origin: center; animation: breathe 3.8s .4s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
+  </style>
+  <rect x="20" y="22" width="600" height="432" rx="42" fill="#d9eee4"/>
+  <circle class="sun" cx="526" cy="108" r="58" fill="#f4d590"/>
+  <circle class="float-a" cx="83" cy="343" r="38" fill="#a8d5c3"/>
+  <path d="M97 376c42-67 94-97 157-91 65 6 104 48 112 133H92z" fill="#167a69"/>
+  <path d="M186 418c6-64 34-105 79-124 41 18 67 59 72 124" fill="#f6f1df"/>
+  <path d="M210 287c2-42 23-68 61-68s60 26 62 68l-17 42h-89z" fill="#473c39"/>
+  <ellipse cx="271" cy="291" rx="42" ry="52" fill="#c98262"/>
+  <path d="M230 280c0-40 18-62 44-65 32-4 57 20 59 62-12-7-21-19-26-34-18 19-43 31-77 37" fill="#463b39"/>
+  <path d="M285 344l29 36 37-44 30 82H259z" fill="#f4d590"/>
+  <rect x="356" y="93" width="200" height="274" rx="22" fill="#fffdf7" stroke="#285b52" stroke-width="4"/>
+  <rect x="374" y="115" width="164" height="24" rx="12" fill="#e8f3ed"/>
+  <circle cx="391" cy="127" r="5" fill="#46a185"/><path d="M405 127h89" stroke="#adc8bd" stroke-width="5" stroke-linecap="round"/>
+  <rect x="374" y="158" width="164" height="89" rx="12" fill="#f8eee2"/>
+  <circle class="spark" cx="405" cy="185" r="12" fill="#d88462"/><path d="M427 183h86M427 200h64M389 222h118" stroke="#8e7566" stroke-width="6" stroke-linecap="round"/>
+  <rect x="374" y="263" width="164" height="76" rx="12" fill="#eaf4ee"/>
+  <path d="M393 286h99M393 303h73M393 320h112" stroke="#89aa9d" stroke-width="6" stroke-linecap="round"/>
+  <path class="spark" d="M500 69l8-19 8 19 20 8-20 8-8 20-8-20-19-8z" fill="#16816d"/>
+  <path class="float-b" d="M565 262h31M580 247v31" stroke="#d88462" stroke-width="5" stroke-linecap="round"/>
+  <path d="M139 172h47M163 149v46" stroke="#fffdf7" stroke-width="7" stroke-linecap="round"/>
+  <path d="M464 386c23 12 45 12 66 0" fill="none" stroke="#b9d9cc" stroke-width="4" stroke-linecap="round"/>
+</svg>

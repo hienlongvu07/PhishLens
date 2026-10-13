@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 220" role="img" aria-hidden="true">
+  <style>
+    @keyframes envelope-float { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-6px) rotate(1deg); } }
+    @keyframes seal-pulse { 0%,100% { transform: scale(1); opacity: .8; } 50% { transform: scale(1.1); opacity: 1; } }
+    @keyframes orbit { to { transform: rotate(360deg); } }
+    .envelope { transform-box: fill-box; transform-origin: center; animation: envelope-float 5.2s ease-in-out infinite; }
+    .seal { transform-box: fill-box; transform-origin: center; animation: seal-pulse 3.6s ease-in-out infinite; }
+    .orbit { transform-box: view-box; transform-origin: 280px 110px; animation: orbit 32s linear infinite; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
+  </style>
+  <rect width="560" height="220" rx="24" fill="#f0f2e9"/>
+  <circle cx="280" cy="109" r="83" fill="none" stroke="#c7ded1" stroke-width="2" stroke-dasharray="3 9"/>
+  <g class="orbit"><circle cx="280" cy="26" r="7" fill="#d77a5d"/><circle cx="280" cy="192" r="5" fill="#76ad93"/></g>
+  <circle cx="93" cy="61" r="34" fill="#e2eee3"/><text x="93" y="74" text-anchor="middle" fill="#287d66" font-family="Arial,sans-serif" font-size="39" font-weight="700">@</text>
+  <circle cx="468" cy="154" r="37" fill="#dcefe5"/>
+  <g class="envelope">
+    <rect x="179" y="60" width="202" height="122" rx="18" fill="#fffdf7" stroke="#376d5d" stroke-width="4"/>
+    <path d="M185 74l95 72 95-72" fill="#e7f2e9" stroke="#6e9d89" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M185 171l64-51M375 171l-64-51" fill="none" stroke="#b8d2c4" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <g class="seal"><circle cx="365" cy="61" r="28" fill="#d77a5d"/><path d="M365 46l12 5v10c0 8-6 13-12 16-6-3-12-8-12-16V51z" fill="#fffdf7"/><path d="M360 61l4 4 7-8" fill="none" stroke="#d77a5d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg>

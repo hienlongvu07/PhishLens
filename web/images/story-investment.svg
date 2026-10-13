@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 300">
+ <style>
+  @keyframes chart-breathe { 0%,100% { transform: scaleY(.96); } 50% { transform: scaleY(1.04); } }
+  @keyframes profit-dash { 0%,100% { stroke-dashoffset: 72; } 45%,85% { stroke-dashoffset: 0; } }
+  @keyframes fee-alert { 0%,100% { opacity: .78; } 50% { opacity: 1; } }
+  .chart-bars { transform-box: fill-box; transform-origin: center bottom; animation: chart-breathe 5s ease-in-out infinite; }
+  .profit-arrow { stroke-dasharray: 72; animation: profit-dash 5s ease-in-out infinite; }
+  .fee-alert { animation: fee-alert 3.8s 1s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
+ </style>
+ <rect width="560" height="300" rx="20" fill="#e4eee8"/><circle cx="95" cy="213" r="68" fill="#cfe3d6"/>
+ <rect x="114" y="41" width="334" height="210" rx="18" fill="#fffdf7" stroke="#315c50" stroke-width="4"/>
+ <rect x="136" y="63" width="290" height="39" rx="10" fill="#eaf3ed"/><circle cx="157" cy="82" r="8" fill="#4d9b7d"/><path d="M177 82h83" stroke="#98b6a8" stroke-width="7" stroke-linecap="round"/>
+ <path class="chart-bars" d="M151 210v-43M192 210v-70M233 210v-55M274 210v-93M315 210v-73" stroke="#65a68b" stroke-width="18" stroke-linecap="round"/>
+ <path class="profit-arrow" d="M349 137c23-10 45 7 48 28" fill="none" stroke="#d47758" stroke-width="7" stroke-linecap="round"/><path d="M384 156l14 11-3-19" fill="#d47758"/>
+ <path class="fee-alert" d="M378 198l13 24 13-24z" fill="#d47758"/><path d="M391 205v7M391 217v1" stroke="#fffdf7" stroke-width="3" stroke-linecap="round"/>
+ <rect x="166" y="236" width="235" height="13" rx="6" fill="#f1d28d"/>
+</svg>

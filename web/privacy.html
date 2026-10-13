@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Quyền riêng tư — PhishLens</title>
+  <link rel="stylesheet" href="/site.css">
+</head>
+<body>
+  <header class="topbar"><a class="logo" href="/">◉ PhishLens</a><nav><a href="/">Trang chủ</a><a href="/#cam-nang">Cẩm nang</a></nav></header>
+  <main class="privacy-page">
+    <p class="overline">MINH BẠCH DỮ LIỆU</p><h1>Chính sách quyền riêng tư</h1><p>Cập nhật: 13/10/2026</p>
+    <p class="policy-callout"><b>PhishLens không tự động gửi URL khi bạn duyệt web.</b> Extension chỉ đọc URL tab hiện tại sau khi bạn bấm biểu tượng. Phân tích quy tắc diễn ra trong trình duyệt.</p>
+    <h2>Dữ liệu extension xử lý</h2>
+    <p>Khi bạn chọn gửi báo cáo, PhishLens hiển thị trước toàn bộ URL (bao gồm query và fragment), loại nghi ngờ và nơi nhận. Nếu bạn xác nhận, extension gửi URL đầy đủ, loại nghi ngờ và nguồn gửi đến API PhishLens qua HTTPS. Query đôi khi chứa mã phiên, mã theo dõi hoặc dữ liệu riêng tư; hãy kiểm tra và hủy gửi nếu không muốn chia sẻ URL đó. Extension không đọc hoặc gửi nội dung trang, biểu mẫu, mật khẩu, OTP, cookies hay lịch sử duyệt web.</p>
+    <h2>Tra cứu email qua Have I Been Pwned</h2>
+    <p>Liên kết kiểm tra email mở trang chính thức Have I Been Pwned (HIBP) trong tab mới. PhishLens không có ô nhập email cho chức năng này, không gửi email tới HIBP thay bạn, không nhận kết quả và không lưu email hay trạng thái tra cứu. Bạn tự nhập email trực tiếp trên HIBP; dịch vụ đó xử lý thông tin theo <a href="https://haveibeenpwned.com/Privacy" target="_blank" rel="noopener noreferrer">chính sách quyền riêng tư của HIBP</a>. Tra cứu cho biết email có xuất hiện trong dữ liệu rò rỉ mà HIBP biết đến hay không; nó không kiểm tra ai có thể đăng nhập Gmail hoặc xác minh hộp thư của bạn.</p>
+    <h2>Báo cáo từ website</h2>
+    <p>Nếu bạn gửi qua biểu mẫu website, PhishLens nhận URL đầy đủ, loại nghi ngờ, mô tả bạn tự nhập và nguồn gửi. Báo cáo được quản trị viên được cấp quyền xem để xác minh. Báo cáo chưa xác minh không xuất hiện trong kho cảnh báo công khai. Khi công bố cảnh báo đã xác minh, website công khai hostname và thông tin cảnh báo đã biên tập; không công khai query, fragment, mô tả gốc hoặc URL đầy đủ của người gửi.</p>
+    <h2>Nơi lưu và thời hạn</h2>
+    <p>Báo cáo được lưu trong cơ sở dữ liệu Supabase và xử lý qua Netlify Functions. Báo cáo gốc được tự động xóa sau 12 tháng. Bản ghi cảnh báo đã xác minh có thể tiếp tục được lưu sau khi URL và mô tả báo cáo gốc bị xóa; bản ghi công khai chỉ chứa hostname, loại cảnh báo, tóm tắt đã biên tập, nguồn và ngày cập nhật. Netlify có thể xử lý địa chỉ IP ở tầng hạ tầng để áp dụng giới hạn tần suất và vận hành dịch vụ; PhishLens không lưu IP trong bảng báo cáo.</p>
+    <h2>Quyền truy cập và mục đích</h2>
+    <p>Dữ liệu báo cáo chỉ được dùng để nhóm xem xét, xác minh và duy trì cảnh báo PhishLens. Không dùng URL báo cáo cho quảng cáo. API công khai không trả lại danh sách báo cáo đang chờ; chỉ trả trạng thái chung khi có báo cáo đang xem xét. Dashboard yêu cầu tài khoản quản trị được nhóm cho phép.</p>
+    <h2>Yêu cầu xóa hoặc câu hỏi</h2>
+    <p>Để yêu cầu xóa báo cáo trước thời hạn tự động, vui lòng liên hệ email quyền riêng tư của nhóm. Trước khi phát hành chính thức, nhóm cần thay địa chỉ placeholder dưới đây bằng email hỗ trợ đang hoạt động.</p>
+    <p class="policy-placeholder"><b>Cần hoàn tất trước khi phát hành:</b> thay <code>[[PRIVACY_CONTACT_EMAIL]]</code> bằng email thật của nhóm và kiểm tra URL chính sách sau khi deploy Netlify.</p>
+    <h2>Giới hạn</h2>
+    <p>Kết quả “Chưa thấy dấu hiệu rõ” hoặc “Chưa có dữ liệu” không đảm bảo website an toàn. Quy tắc và dữ liệu thử nghiệm không phải danh sách cảnh báo toàn diện. HTTPS mã hóa kết nối nhưng không xác minh tổ chức mà website tự nhận.</p>
+    <p><a href="/">← Trở về PhishLens</a></p>
+  </main>
+</body>
+</html>

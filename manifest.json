@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "PhishLens",
+  "version": "1.0.0",
+  "description": "Explains noteworthy URL signals to help users make more careful decisions.",
+  "permissions": [
+    "activeTab"
+  ],
+  "icons": {
+    "16": "icons/phishlens-16.png",
+    "48": "icons/phishlens-48.png",
+    "128": "icons/phishlens-128.png"
+  },
+  "action": {
+    "default_title": "Check with PhishLens",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/phishlens-16.png",
+      "32": "icons/phishlens-32.png"
+    }
+  },
+  "host_permissions": [
+    "http://127.0.0.1:8888/*",
+    "http://localhost:8888/*"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "phishlens",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "test": "node --test",
+    "dev": "netlify dev",
+    "build:extension": "node scripts/build-extension.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.117.3"
+  },
+  "devDependencies": {
+    "archiver": "^8.0.0",
+    "netlify-cli": "^27.12.0"
+  }
+}

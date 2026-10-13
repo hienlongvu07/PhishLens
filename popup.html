@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PhishLens</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <header><div class="brand-mark" aria-hidden="true">◉</div><div><h1>PhishLens</h1><p class="tagline">Hiểu liên kết trước khi tin</p></div><span class="local-tag">XỬ LÝ CỤC BỘ</span></header>
+    <section class="score-card" aria-live="polite">
+      <p class="eyebrow">ĐÁNH GIÁ THEO QUY TẮC</p>
+      <p id="level" class="level">Đang phân tích…</p>
+      <p id="domain" class="domain">Đang đọc trang hiện tại…</p>
+      <p id="summary" class="summary"></p>
+    </section>
+    <nav class="tabs" aria-label="Chi tiết phân tích"><button class="tab active" data-panel="signals">Dấu hiệu <span id="finding-count">0</span></button><button class="tab" data-panel="url-parts">Cấu trúc URL</button><button class="tab" data-panel="guide">Cẩm nang</button></nav>
+    <section id="signals" class="panel"><div id="findings"></div><p id="no-findings" class="note hidden">Chưa thấy dấu hiệu rõ trong lần kiểm tra này. Điều đó không đảm bảo website an toàn.</p></section>
+    <section id="url-parts" class="panel hidden"><p class="panel-intro">URL được chia thành các phần dưới đây để bạn nhận ra tên miền và đích đến.</p><dl id="parts" class="parts"></dl></section>
+    <section id="guide" class="panel hidden"><div id="mini-guide" class="guide-mini"></div><a id="guide-link" class="site-guide" href="#cam-nang" target="_blank" rel="noopener noreferrer">Mở cẩm nang đầy đủ trên website ↗</a></section>
+    <div class="report-area"><label class="report-type-label" for="report-type">Loại nghi ngờ</label><select id="report-type"><option value="Liên kết rút gọn/website/tệp lạ">Liên kết rút gọn/website/tệp lạ</option><option value="Giả mạo ngân hàng/tổ chức">Giả mạo ngân hàng/tổ chức</option><option value="Lừa lấy mật khẩu hoặc OTP">Lừa lấy mật khẩu hoặc OTP</option><option value="Giả mạo cơ quan/dịch vụ công">Giả mạo cơ quan/dịch vụ công</option><option value="Tuyển dụng/việc làm giả">Tuyển dụng/việc làm giả</option><option value="Quà tặng/khuyến mãi">Quà tặng/khuyến mãi</option><option value="Đầu tư/vay đáng ngờ">Đầu tư/vay đáng ngờ</option><option value="Khác">Khác</option></select><button id="report" class="report" disabled>Gửi báo cáo đến website PhishLens</button><p id="report-status" class="report-status">URL chỉ được gửi sau khi bạn xem trước và xác nhận.</p></div>
+<footer><span>PhishLens không thể phát hiện mọi website lừa đảo.</span><a id="privacy-link" class="privacy-link" target="_blank" rel="noopener noreferrer">Quyền riêng tư</a><button id="settings" class="settings" title="Mở website PhishLens">↗</button></footer>
+  </main>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

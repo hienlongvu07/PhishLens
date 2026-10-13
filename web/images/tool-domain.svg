@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 220" role="img" aria-hidden="true">
+  <style>
+    @keyframes scan { to { stroke-dashoffset: -120; } }
+    @keyframes lens-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    @keyframes ping { 0%,100% { opacity: .75; transform: scale(.92); } 50% { opacity: 1; transform: scale(1.08); } }
+    .scan-ring { stroke-dasharray: 10 7; animation: scan 12s linear infinite; }
+    .lens { animation: lens-float 4.8s ease-in-out infinite; }
+    .ping { transform-box: fill-box; transform-origin: center; animation: ping 3s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
+  </style>
+  <rect width="560" height="220" rx="24" fill="#edf5ed"/>
+  <circle cx="448" cy="110" r="83" fill="#dcefe5"/>
+  <rect x="33" y="37" width="336" height="146" rx="18" fill="#fffdf7" stroke="#c9ddd2" stroke-width="3"/>
+  <path d="M33 71h336" stroke="#e4ece5" stroke-width="3"/>
+  <circle cx="56" cy="54" r="5" fill="#d98767"/><circle cx="74" cy="54" r="5" fill="#e8c678"/><circle cx="92" cy="54" r="5" fill="#68a88a"/>
+  <rect x="56" y="88" width="291" height="42" rx="12" fill="#edf4ee"/>
+  <circle cx="78" cy="109" r="9" fill="#73a992"/><path d="M97 109h150" stroke="#88aa99" stroke-width="7" stroke-linecap="round"/><path d="M262 109h62" stroke="#d6e3da" stroke-width="7" stroke-linecap="round"/>
+  <path d="M58 151h130M201 151h77" stroke="#dce7df" stroke-width="7" stroke-linecap="round"/>
+  <g class="lens"><circle class="scan-ring" cx="397" cy="114" r="47" fill="#fffdf7" stroke="#21816b" stroke-width="8"/><path d="M431 149l35 35" stroke="#21816b" stroke-width="14" stroke-linecap="round"/><circle cx="397" cy="114" r="25" fill="#e7f2e9"/><path d="M385 114h24M397 102v24" stroke="#67a78b" stroke-width="6" stroke-linecap="round"/></g>
+  <circle class="ping" cx="474" cy="46" r="13" fill="#d77a5d"/><path d="M474 39v8M474 51v1" stroke="#fffdf7" stroke-width="3" stroke-linecap="round"/>
+</svg>

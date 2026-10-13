@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123d3a">
+  <meta name="description" content="PhishLens giúp bạn nhận ra chiêu trò lừa đảo qua những tình huống dễ hiểu, tra cứu tên miền và chọn bước xác minh an toàn.">
+  <title>PhishLens — Nhìn ra dấu hiệu, chọn bước an toàn</title>
+  <link rel="stylesheet" href="/site.css">
+</head>
+<body class="home-page">
+  <a class="skip-link" href="#noi-dung">Bỏ qua điều hướng</a>
+  <header class="topbar home-topbar">
+    <a class="logo" href="/" aria-label="PhishLens — Trang chủ"><span class="logo-icon" aria-hidden="true">◉</span> PhishLens</a>
+    <nav aria-label="Điều hướng chính">
+      <a href="#kiem-tra">Công cụ</a><a href="#chieu-tro">Cẩm nang</a><a href="#ve-chung-toi">Về dự án</a>
+      <a class="nav-report" href="#bao-cao">Gửi báo cáo <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main id="noi-dung">
+    <section class="editorial-hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow"><span aria-hidden="true">✳</span> CẨM NANG AN TOÀN SỐ · BẢN THỬ NGHIỆM</p>
+          <h1><span>Bạn biết những</span><span>hình thức <em>lừa đảo</em></span><span>nào không?</span></h1>
+          <p class="hero-intro">Một tin nhắn gấp gáp. Một công việc nghe quá dễ. Một đường link trông quen mắt. Cùng nhìn chậm lại để nhận ra dấu hiệu và biết nên làm gì tiếp theo.</p>
+          <div class="hero-actions"><a class="button primary" href="#chieu-tro">Khám phá các câu chuyện <span aria-hidden="true">↓</span></a><a class="text-link" href="#kiem-tra">Bạn có một liên kết cần xem? <span aria-hidden="true">→</span></a></div>
+          <p class="hero-caveat"><span aria-hidden="true">ⓘ</span> PhishLens đưa ra gợi ý để kiểm tra thêm, không thể xác định mọi website lừa đảo.</p>
+        </div>
+        <div class="hero-art-wrap"><img class="hero-art" src="/images/hero-pause.svg" alt="Minh họa một người đang dừng lại để kiểm tra tin nhắn và đường dẫn" width="640" height="480"><div class="art-caption"><span class="caption-dot" aria-hidden="true"></span> Dừng lại · Nhìn kỹ · Xác minh</div></div>
+      </div>
+      <div class="hero-bottom"><span>ĐỌC TÌNH HUỐNG</span><span class="hero-bottom-line" aria-hidden="true"></span><span>01 — 04</span></div>
+    </section>
+
+    <section id="kiem-tra" class="tools-section">
+      <div class="section-topline"><div><p class="eyebrow">CÔNG CỤ PHISHLENS</p><h2>Muốn kiểm tra ngay?</h2></div><p class="section-lead">Tra cứu thông tin tên miền hoặc tự kiểm tra email trên một nguồn độc lập.</p></div>
+      <div class="tool-grid">
+        <article class="tool-card domain-tool">
+          <img class="tool-illustration" src="/images/tool-domain.svg" alt="" aria-hidden="true" width="560" height="220" loading="lazy">
+          <div class="tool-card-head"><span class="tool-icon" aria-hidden="true">⌕</span><span class="tool-kicker">TRA CỨU TÊN MIỀN</span></div>
+          <h3>Đã có cảnh báo nào chưa?</h3><p class="tool-copy">Tìm cảnh báo cộng đồng đã được quản trị viên xác minh. Chưa có dữ liệu không có nghĩa website an toàn.</p>
+          <form id="lookup-form" class="lookup-form"><label class="sr-only" for="lookup-input">URL hoặc tên miền cần tra cứu</label><input id="lookup-input" required placeholder="Nhập tên miền hoặc URL" autocomplete="url"><button class="button primary">Tra cứu <span aria-hidden="true">→</span></button></form>
+          <div id="lookup-result" class="lookup-result" aria-live="polite" aria-atomic="true"><div class="empty-mark" aria-hidden="true">⌕</div><p>Nhập URL hoặc tên miền để bắt đầu.</p></div>
+          <p class="tool-footnote">Kết quả áp dụng cho dữ liệu PhishLens hiện có; không thay thế xác minh qua kênh chính thức.</p>
+        </article>
+        <article class="tool-card email-tool">
+          <img class="tool-illustration" src="/images/tool-email.svg" alt="" aria-hidden="true" width="560" height="220" loading="lazy">
+          <div class="tool-card-head"><span class="tool-icon email-icon" aria-hidden="true">@</span><span class="tool-kicker">KIỂM TRA EMAIL · NGUỒN ĐỘC LẬP</span></div>
+          <h3>Email có trong dữ liệu rò rỉ?</h3><p class="tool-copy">Tự nhập email trên Have I Been Pwned để xem email có xuất hiện trong các vụ rò rỉ mà dịch vụ biết đến hay không.</p>
+          <a class="button email-button" href="https://haveibeenpwned.com/" target="_blank" rel="noopener noreferrer">Mở Have I Been Pwned <span aria-hidden="true">↗</span></a>
+          <p class="hibp-source">Nguồn: <a href="https://haveibeenpwned.com/" target="_blank" rel="noopener noreferrer">Have I Been Pwned</a></p>
+          <p class="privacy-hint"><span aria-hidden="true">ⓘ</span> PhishLens không nhận email hay kết quả. Tra cứu rò rỉ không cho biết ai đang truy cập hộp thư Gmail của bạn.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="chieu-tro" class="stories-section">
+      <div class="stories-heading"><div><p class="eyebrow">NHẬN DIỆN QUA TÌNH HUỐNG</p><h2>Chiêu trò thường bắt đầu<br>từ những điều rất quen.</h2></div><p>Đọc một câu chuyện ngắn, nhìn lại tín hiệu cảnh báo và thử chọn một bước an toàn hơn. Các tình huống dưới đây được tổng hợp để minh họa, không mô tả một nạn nhân hay vụ việc cụ thể.</p></div>
+      <div id="story-grid" class="story-grid" aria-label="Các tình huống minh họa về lừa đảo"></div>
+      <div class="story-bottom-note"><span class="note-symbol" aria-hidden="true">!</span><p><b>Một dấu hiệu chưa đủ để kết luận.</b> Hãy dừng việc chuyển tiền hoặc chia sẻ thông tin, rồi tự xác minh với tổ chức qua ứng dụng, website hoặc số điện thoại chính thức.</p></div>
+    </section>
+
+    <section id="ve-chung-toi" class="why-section">
+      <div class="why-copy"><p class="eyebrow">VÌ SAO PHISHLENS GIẢI THÍCH TỪNG DẤU HIỆU?</p><h2>Vì tự tin đánh giá một đường link không phải lúc nào cũng dễ.</h2><p>Trong khảo sát tự báo cáo của nhóm với 120 người, nhiều người muốn được hướng dẫn cụ thể hơn. Những con số này giúp định hướng nội dung, không đo độ chính xác của công cụ.</p><img class="verification-illustration" src="/images/verification-path.svg" alt="Minh họa các bước dừng lại, kiểm tra địa chỉ và xác minh qua kênh chính thức" width="560" height="260" loading="lazy"><a href="#kiem-tra" class="text-link">Thử công cụ tra cứu <span aria-hidden="true">→</span></a></div>
+      <div class="survey-panel"><div class="survey-main"><strong>94<span>/120</span></strong><p>chưa tự tin đánh giá tên miền</p></div><div class="survey-facts"><p><b>86 người</b> chưa rõ HTTPS có chứng minh website an toàn không.</p><p><b>54 người</b> chưa biết dấu hiệu nhận diện liên kết đáng ngờ.</p><p><b>46 người</b> muốn được nhắc không chia sẻ mật khẩu hoặc OTP.</p><p><b>44 người</b> muốn xác minh qua kênh chính thức; <b>40 người</b> muốn tra cứu uy tín tên miền.</p></div><small>Khảo sát tự báo cáo, n = 120. Đây là nhu cầu của người tham gia, không phải bằng chứng về hiệu quả PhishLens.</small></div>
+    </section>
+
+    <section id="bao-cao" class="report-section report-secondary">
+      <div class="report-copy"><p class="eyebrow">GÓP THÊM MỘT TÍN HIỆU</p><h2>Gặp một liên kết đáng ngờ?</h2><p>Gửi URL để nhóm xem xét. Báo cáo mới chưa phải kết luận và chỉ thành cảnh báo công khai sau khi quản trị viên xác minh.</p><ul><li>Không gửi mật khẩu, mã OTP hay thông tin thanh toán.</li><li>Tránh ghi dữ liệu cá nhân trong phần mô tả.</li></ul></div>
+      <form id="report-form" class="report-form"><label>URL cần báo cáo<input name="url" type="url" required maxlength="2048" placeholder="https://example.com/path"></label><label>Hình thức nghi ngờ<select name="type" required></select></label><label>Mô tả (không bắt buộc)<textarea name="description" maxlength="1000" rows="3" placeholder="Bạn thấy điều gì đáng chú ý? Không nhập dữ liệu bí mật."></textarea></label><label class="consent"><input name="consent" type="checkbox" required><span>Tôi xác nhận muốn gửi URL đầy đủ và mô tả này cho nhóm PhishLens xem xét.</span></label><label class="honeypot" aria-hidden="true">Không điền<input name="website" tabindex="-1" autocomplete="off"></label><button class="button primary">Xem lại báo cáo</button><p class="form-status" aria-live="polite"></p></form>
+    </section>
+
+    <dialog id="report-confirm-dialog" class="confirm-dialog"><form method="dialog"><button class="dialog-close" aria-label="Đóng">×</button></form><p class="eyebrow">XÁC NHẬN CHIA SẺ</p><h2>Kiểm tra nội dung trước khi gửi</h2><p class="query-warning">URL đầy đủ, gồm query và fragment, sẽ được gửi đến nhóm. Query đôi khi chứa mã phiên hoặc dữ liệu riêng tư.</p><dl><dt>URL</dt><dd id="confirm-url"></dd><dt>Loại nghi ngờ</dt><dd id="confirm-type"></dd><dt>Mô tả</dt><dd id="confirm-description"></dd></dl><div class="confirm-actions"><button type="button" id="cancel-report" class="button ghost">Quay lại</button><button type="button" id="confirm-report" class="button primary">Gửi báo cáo</button></div></dialog>
+  </main>
+
+  <footer class="site-footer"><a class="logo" href="/">◉ PhishLens</a><p>Gợi ý để kiểm tra kỹ hơn, không thay thế xác minh qua kênh chính thức.</p><a href="/privacy.html">Quyền riêng tư</a><a href="/admin.html">Khu vực quản trị</a></footer>
+  <script type="module" src="/site.js"></script>
+</body>
+</html>

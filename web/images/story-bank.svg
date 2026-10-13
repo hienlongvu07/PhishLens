@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 300">
+ <style>
+  @keyframes clock-tick { to { transform: rotate(360deg); } }
+  @keyframes alert-breathe { 0%,100% { transform: scale(1); opacity: .82; } 50% { transform: scale(1.08); opacity: 1; } }
+  .clock-hand { transform-box: view-box; transform-origin: 370px 166px; animation: clock-tick 60s linear infinite; }
+  .alert-mark { transform-box: fill-box; transform-origin: center; animation: alert-breathe 3.6s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
+ </style>
+ <rect width="560" height="300" rx="20" fill="#dcefe7"/><circle cx="451" cy="75" r="84" fill="#c5e5d7"/>
+ <rect x="105" y="36" width="188" height="236" rx="18" fill="#fffdf7" stroke="#315c50" stroke-width="4"/>
+ <rect x="124" y="57" width="150" height="27" rx="10" fill="#e9f3ed"/><circle cx="141" cy="70" r="6" fill="#27886e"/><path d="M156 70h89" stroke="#a2c1b4" stroke-width="6" stroke-linecap="round"/>
+ <rect x="124" y="99" width="150" height="65" rx="10" fill="#f6e9dd"/><path d="M141 120h99M141 140h72" stroke="#a9836d" stroke-width="7" stroke-linecap="round"/>
+ <rect x="124" y="176" width="150" height="42" rx="9" fill="#f7d695"/><path d="M141 197h88" stroke="#856746" stroke-width="7" stroke-linecap="round"/>
+ <circle cx="370" cy="166" r="63" fill="#fffdf7" stroke="#315c50" stroke-width="4"/><path class="clock-hand" d="M370 123v43l27 18" fill="none" stroke="#d16f52" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+ <path class="alert-mark" d="M355 61l16-31 16 31h-32z" fill="#d47758"/><path d="M371 43v8M371 56v1" stroke="#fffdf7" stroke-width="4" stroke-linecap="round"/>
+ <path d="M437 214h43M458 193v43" stroke="#fffdf7" stroke-width="6" stroke-linecap="round"/>
+</svg>
