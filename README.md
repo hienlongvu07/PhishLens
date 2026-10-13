@@ -2,21 +2,21 @@
 
 PhishLens là dự án thử nghiệm cộng đồng gồm tiện ích Chrome/Edge, website hướng dẫn và tra cứu, API nhận báo cáo cùng dashboard kiểm duyệt. Extension phân tích URL khi người dùng bấm biểu tượng; không đọc nội dung trang, biểu mẫu, mật khẩu, OTP, cookie hay lịch sử duyệt web. Kết quả giải thích dấu hiệu tham khảo, không đảm bảo phát hiện mọi website lừa đảo.
 
-> **Cần biết tải phần nào lên đâu?** Xem [Bản đồ triển khai](DEPLOYMENT.md): kết nối repository gốc với Netlify, chạy migration/cấu hình Auth trong Supabase, và tải ZIP extension lên Chrome Web Store. Website không được tải lên Supabase.
+> **Cần biết tải phần nào lên đâu?** Xem [Bản đồ triển khai](DEPLOYMENT.md): kết nối repository gốc với Vercel, chạy migration/cấu hình Auth trong Supabase, và tải ZIP extension lên Chrome Web Store. Website không được tải lên Supabase.
 
 ## Cấu trúc
 
 - `web/`: website công khai, cẩm nang, tra cứu, biểu mẫu gửi báo cáo, dashboard và chính sách riêng tư.
-- `netlify/functions/`: API cùng Netlify Functions; giới hạn tốc độ báo cáo/đăng nhập và dọn báo cáo quá hạn.
+- `api/`: Vercel Functions cho API, quản trị và dọn báo cáo quá hạn.
 - `src/api-handlers.js`: xử lý nghiệp vụ có thể kiểm thử độc lập.
 - `supabase/migrations/`: bảng, RLS, RPC kiểm duyệt và dữ liệu Demo mẫu.
 - `src/analyzer.js`: quy tắc phân tích URL của extension.
-- `scripts/build-extension.mjs`: đóng gói extension với quyền host chỉ tới site Netlify đã chọn.
+- `scripts/build-extension.mjs`: đóng gói extension với quyền host chỉ tới site Vercel đã chọn.
 - `DEPLOYMENT.md`: hướng dẫn triển khai theo từng dịch vụ và đầu ra cần tải lên.
 
 ## Chuẩn bị Supabase
 
-1. Tạo một dự án Supabase riêng cho thử nghiệm và một dự án khác cho production.
+1. Có thể dùng dự án Supabase hiện tại; với thử nghiệm và production tách biệt, tạo hai project.
 2. Chạy `supabase/migrations/202610130001_initial.sql` trong SQL Editor của dự án.
 3. Tạo tài khoản Auth cho từng quản trị viên được phép. Đặt mật khẩu mạnh và bật xác minh email nếu phù hợp.
 4. Không bật public signup nếu nhóm không cần tài khoản tự đăng ký. Chỉ email trong `ADMIN_EMAILS` được dùng dashboard.
@@ -37,17 +37,17 @@ Copy-Item .env.example .env
 npm.cmd run dev
 ```
 
-Mở `http://localhost:8888`. Netlify CLI phục vụ website và Functions cùng origin. API báo lỗi cấu hình nếu thiếu biến môi trường. Cài extension local: mở `chrome://extensions` hoặc `edge://extensions`, bật Developer mode, chọn **Load unpacked** và trỏ tới thư mục dự án. Manifest local chỉ cho phép gọi API tại `localhost:8888`/`127.0.0.1:8888`.
+Mở địa chỉ local do Vercel CLI hiển thị. Website và Functions cùng origin. API báo lỗi cấu hình nếu thiếu biến môi trường. Cài extension local: mở `chrome://extensions` hoặc `edge://extensions`, bật Developer mode, chọn **Load unpacked** và trỏ tới thư mục dự án. Manifest local chỉ cho phép gọi API tại localhost.
 
-## Deploy lên Netlify
+## Deploy lên Vercel
 
-1. Đưa source lên Git và tạo site Netlify từ repository; build command để trống, publish directory là `web`, Functions directory là `netlify/functions` (đã khai báo trong `netlify.toml`).
-2. Với Deploy Preview, cấu hình một Supabase thử nghiệm riêng. Trong **Site configuration → Environment variables**, thêm `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAILS`. Không commit `.env` hoặc secrets.
-3. Deploy Preview và kiểm tra `/`, `/privacy.html`, `/admin.html`, `/api/health`, gửi báo cáo thử, kiểm duyệt và tra cứu. Dùng dữ liệu thử nghiệm, không đưa dữ liệu người dùng thật vào preview.
-4. Sau khi site production có URL `https://<ten-site>.netlify.app`, thay placeholder `[[PRIVACY_CONTACT_EMAIL]]` trong `web/privacy.html` bằng địa chỉ hỗ trợ thật, rồi deploy lại.
+1. Import repository từ thư mục gốc. `vercel.json` cấu hình website `web/`, bảo mật response headers và cron; API nằm trong `api/`.
+2. Trong **Project Settings → Environment Variables**, thêm `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAILS`, `CRON_SECRET`. Không commit `.env` hoặc secrets.
+3. Deploy và kiểm tra `/`, `/privacy.html`, `/admin.html`, `/api/health`, gửi báo cáo thử, kiểm duyệt và tra cứu. Dùng dữ liệu thử nghiệm, không đưa dữ liệu người dùng thật vào preview.
+4. Sau khi site production có URL `https://<ten-site>.vercel.app`, thay placeholder `[[PRIVACY_CONTACT_EMAIL]]` trong `web/privacy.html` bằng địa chỉ hỗ trợ thật, rồi deploy lại.
 5. Dùng cùng một URL site cố định cho website và API. Nếu đổi domain sau này, cần đóng gói và phát hành extension với quyền host mới.
 
-Dashboard sử dụng Supabase Auth. Tài khoản phải vừa tồn tại trong Supabase Auth vừa có email nằm trong `ADMIN_EMAILS`. Khóa service role chỉ được Netlify Functions sử dụng. RLS chặn người chưa đăng nhập đọc/sửa báo cáo; public lookup chỉ trả cảnh báo đã xác minh và trạng thái tổng quát khi đang có báo cáo chờ.
+Dashboard sử dụng Supabase Auth. Tài khoản phải vừa tồn tại trong Supabase Auth vừa có email nằm trong `ADMIN_EMAILS`. Khóa service role chỉ được Vercel Functions sử dụng. RLS chặn người chưa đăng nhập đọc/sửa báo cáo; public lookup chỉ trả cảnh báo đã xác minh và trạng thái tổng quát khi đang có báo cáo chờ.
 
 ## Luồng báo cáo và riêng tư
 
@@ -76,19 +76,19 @@ Nguồn bài cẩm nang:
 
 ## Đóng gói extension cho Chrome Web Store
 
-Sau khi biết site Netlify production:
+Sau khi biết site Vercel production:
 
 ```powershell
-npm.cmd run build:extension -- --site-url=https://<ten-site>.netlify.app
+npm.cmd run build:extension -- --site-url=https://<ten-site>.vercel.app
 ```
 
-Script tạo `dist/extension/` để cài thử và `dist/phishlens-extension.zip` để tải lên Chrome Web Store. Manifest bản phát hành chỉ khai báo host permission cho origin Netlify truyền vào; extension không cần quyền đọc mọi trang. Kiểm tra ZIP cài được trên Chrome và Edge trước khi tải lên. Trong Chrome Web Store Developer Dashboard, tạo mục mới, tải ZIP, điền mô tả/ảnh chụp, khai báo quyền và dữ liệu, thêm URL chính sách riêng tư, rồi gửi xét duyệt. Bản này chưa tự động xuất bản và không chứa khóa backend.
+Script tạo `dist/extension/` để cài thử và `dist/phishlens-extension.zip` để tải lên Chrome Web Store. Manifest bản phát hành chỉ khai báo host permission cho origin Vercel truyền vào; extension không cần quyền đọc mọi trang. Kiểm tra ZIP cài được trên Chrome và Edge trước khi tải lên. Trong Chrome Web Store Developer Dashboard, tạo mục mới, tải ZIP, điền mô tả/ảnh chụp, khai báo quyền và dữ liệu, thêm URL chính sách riêng tư, rồi gửi xét duyệt. Bản này chưa tự động xuất bản và không chứa khóa backend.
 
 ## API
 
 - `GET /api/health`: health check.
 - `GET /api/lookup?url=<URL-hoặc-host>`: một trong ba trạng thái **Đã được xác minh**, **Đang xem xét**, **Chưa có dữ liệu**. Không trạng thái nào có nghĩa “an toàn”.
-- `POST /api/reports`: nhận `{ url, type, description?, source?, website? }`; URL HTTP(S) tối đa 2.048 ký tự, mô tả tối đa 1.000. Hỗ trợ honeypot và giới hạn tốc độ Netlify.
+- `POST /api/reports`: nhận `{ url, type, description?, source?, website? }`; URL HTTP(S) tối đa 2.048 ký tự, mô tả tối đa 1.000. Hỗ trợ honeypot; giới hạn tốc độ cần cấu hình trên Vercel Firewall.
 - `POST /api/admin/login`, `POST /api/admin/refresh`, `POST /api/admin/logout`: phiên Supabase Auth.
 - `GET /api/admin/reports`: danh sách có tìm kiếm, lọc và phân trang.
 - `PATCH /api/admin/reports/:id`: đổi trạng thái qua RPC giao dịch; chỉ admin.
@@ -97,7 +97,7 @@ Script tạo `dist/extension/` để cài thử và `dist/phishlens-extension.zi
 
 ```powershell
 npm.cmd test
-npm.cmd run build:extension -- --site-url=https://phishlens-demo.netlify.app
+npm.cmd run build:extension -- --site-url=https://phishlens-demo.vercel.app
 ```
 
 Test API dùng Supabase giả lập để kiểm tra xác thực đầu vào, giữ nguyên URL đầy đủ, ba trạng thái tra cứu, quyền admin và chuyển trạng thái; không cần secret thật. Kiểm tra giao diện website: nút HIBP mở đúng nguồn ở tab mới, không có trường email/POST gửi email, còn tra cứu URL và quy trình báo cáo nội bộ hoạt động. Kiểm thử Deploy Preview xuyên suốt cần một dự án Supabase thử nghiệm: gửi báo cáo từ extension, mở dashboard, xác minh, rồi tra cứu hostname ở website. Bài kiểm thử cục bộ không thay thế bước preview thật.

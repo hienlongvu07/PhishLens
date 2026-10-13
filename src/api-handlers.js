@@ -98,7 +98,7 @@ export function createApiHandlers({ makePublicClient = publicSupabase, makeAdmin
     submitReport: async (request) => {
       try {
         const body = await readJson(request);
-        // Honeypot for simple form bots. Netlify's per-IP function rate limit is the primary throttle.
+        // Honeypot for simple form bots; configure Vercel Firewall for per-IP rate limiting.
         if (String(body.website || "").trim()) return json(201, { id: "received", status: "Mới", message: "Đã tiếp nhận báo cáo để xem xét, chưa phải xác minh." });
         const input = parseUrl(body.url);
         if (!input) return json(400, { error: "URL phải là HTTP(S), tối đa 2.048 ký tự và không chứa tên người dùng/mật khẩu." });

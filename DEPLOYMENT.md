@@ -1,45 +1,56 @@
 # Bản đồ triển khai PhishLens
 
-PhishLens là một monorepo. Hãy kết nối **cả repository** với Netlify để Functions có thể dùng mã dùng chung trong `src/`; Netlify chỉ public website trong `web/`. Supabase không nhận source website hay extension.
+PhishLens là monorepo. Kết nối toàn bộ repository với Vercel từ thư mục gốc. Vercel phục vụ website tĩnh trong `web/` và các API trong `api/`. Supabase chỉ lưu dữ liệu và tài khoản quản trị; không tải source website hay extension lên Supabase.
 
-## Phần nào đi đâu?
+## Thành phần và nơi cấu hình
 
-| Thành phần | Nơi cấu hình/tải lên | Nội dung cần dùng |
+| Thành phần | Nơi | Cấu hình |
 | --- | --- | --- |
-| Website và API | Netlify | Kết nối repository gốc. `netlify.toml` đã đặt publish directory là `web/` và Functions ở `netlify/functions/`. Build command để trống. |
-| Cơ sở dữ liệu và đăng nhập quản trị | Supabase | Tạo project, chạy migration trong `supabase/migrations/202610130001_initial.sql` bằng SQL Editor và tạo tài khoản Auth cho quản trị viên. |
-| Bí mật backend | Netlify Environment variables | Đặt `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAILS` trong Site configuration. Không commit `.env`; không đặt service role key trong `web/` hoặc extension. |
-| Tiện ích Chrome/Edge | Chrome Web Store; Edge Add-ons nếu phát hành Edge riêng | Tạo gói ZIP bằng lệnh dưới đây rồi tải ZIP lên trang quản lý nhà phát triển của cửa hàng. Không tải extension lên Supabase hoặc thư mục publish của Netlify. |
+| Website | Vercel | Root Directory là repository root; Output Directory là `web`. `vercel.json` đã khai báo. |
+| API và tác vụ định kỳ | Vercel Functions | Các route nằm trong `api/`; cron dọn báo cáo khai báo trong `vercel.json`. |
+| Cơ sở dữ liệu và Auth | Supabase | Giữ project hiện có; không cần chạy lại migration khi chuyển hosting. |
+| Bí mật backend | Vercel → Project Settings → Environment Variables | Khai báo `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAILS`, `CRON_SECRET`. Đánh dấu `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAILS` và `CRON_SECRET` là nhạy cảm. |
+| Extension | Chrome Web Store | Build ZIP riêng với domain Vercel; không tải extension lên Vercel hay Supabase. |
 
-## Lần triển khai đầu
+## Deploy lên Vercel
 
-1. **Supabase:** tạo project thử nghiệm; chạy file migration nêu trên. Tạo tài khoản Auth cho quản trị viên và ghi lại URL cùng các key cần cấu hình.
-2. **Netlify:** kết nối repository Git ở thư mục gốc. Giữ build command trống; `netlify.toml` định tuyến website và Functions. Thêm bốn biến môi trường ở bảng trên. Dùng project Supabase thử nghiệm cho Deploy Preview.
-3. **Kiểm tra web/API:** mở Deploy Preview và kiểm tra `/`, `/privacy.html`, `/admin.html`, `/api/health`; thử báo cáo, đăng nhập quản trị, kiểm duyệt và tra cứu.
-4. **Đóng gói extension:** dùng origin HTTPS cố định của site Netlify. Ví dụ:
+1. Đưa các thay đổi mới nhất lên GitHub/Git repository, rồi tạo project Vercel bằng cách import repository đó. Đặt **Root Directory** là thư mục gốc; Framework Preset chọn **Other** nếu được hỏi. Giữ Install Command mặc định; không cần Build Command cho website tĩnh.
+2. Trong **Project Settings → Environment Variables**, thêm năm biến ở bảng trên cho Production và Preview nếu dùng. `SUPABASE_URL` cùng hai API key phải lấy từ cùng project Supabase; `ADMIN_EMAILS` phải trùng email Auth quản trị. `CRON_SECRET` là chuỗi ngẫu nhiên dài, không dùng lại mật khẩu tài khoản.
+3. Deploy lại sau khi lưu biến môi trường. Mở `/`, `/privacy.html`, `/admin.html` và `/api/health`. Tiếp đó thử `/api/lookup?url=https%3A%2F%2Flogin-verify-example.test`, gửi báo cáo demo, rồi xem dashboard.
+4. Nếu Function lỗi, xem **Vercel → Project → Logs** và lọc function `/api/reports` hoặc `/api/admin/login`. Phần này không cần Supabase Audit Logs.
+5. Trên **Vercel → Firewall**, thêm quy tắc rate limit cho API. Hobby chỉ có một quy tắc rate limit cho mỗi project, vì vậy dùng một ngưỡng chung cho `/api/*` (ví dụ 60 request/phút); giới hạn này không tương đương chính xác với các ngưỡng riêng của Netlify. Gói Pro cho phép nhiều quy tắc riêng hơn. Honeypot trong biểu mẫu vẫn là lớp chống bot cơ bản.
+6. Xác nhận email liên hệ quyền riêng tư trong `web/privacy.html` còn hoạt động trước khi phát hành chính thức.
 
-   ```powershell
-   npm.cmd run build:extension -- --site-url=https://phishlens-demo.netlify.app
-   ```
+## Supabase
 
-   Lệnh tạo `dist/extension/` để cài thử bằng Developer mode và `dist/phishlens-extension.zip` để nộp lên Chrome Web Store. ZIP được đóng gói với host permission chỉ tới origin đã truyền vào.
-5. **Cửa hàng:** kiểm tra gói bằng Load unpacked trên Chrome/Edge. Sau đó tải ZIP lên Chrome Web Store Developer Dashboard, điền mô tả, ảnh, chính sách riêng tư và khai báo dữ liệu/quyền, rồi gửi xét duyệt. Phát hành Edge riêng thì dùng cửa hàng Edge Add-ons.
+Khi chuyển hosting, giữ nguyên cơ sở dữ liệu, migration, tài khoản Auth và các báo cáo đang có. Trong Supabase, không cần đổi URL hay key nếu project vẫn là project cũ. Chỉ chuyển các biến môi trường server sang Vercel; tuyệt đối không đưa service role key vào `web/` hay extension.
+
+## Build và cài extension
+
+Sau khi biết domain Vercel production, build extension để giới hạn host permission đúng domain:
+
+```powershell
+npm.cmd install
+npm.cmd run build:extension -- --site-url=https://<ten-project>.vercel.app
+```
+
+Lệnh tạo `dist/extension/` để cài thử bằng Developer mode và `dist/phishlens-extension.zip` để nộp lên Chrome Web Store. Nếu đổi domain sau này, build và phát hành phiên bản extension mới.
 
 ## Chạy local
 
 ```powershell
 npm.cmd install
-Copy-Item .env.example .env
-# Điền giá trị Supabase thử nghiệm vào .env; không dùng service role key ở client.
+Copy-Item .env.example .env.local
+# Điền giá trị Supabase thử nghiệm vào .env.local; không commit file này.
 npm.cmd run dev
 ```
 
-Netlify CLI phục vụ website và Functions tại `http://localhost:8888`. Nạp extension local từ thư mục gốc tại `chrome://extensions` hoặc `edge://extensions` sau khi bật Developer mode; bản manifest local chỉ kết nối API localhost.
+Lệnh dev dùng Vercel CLI. Thêm `CRON_SECRET` vào biến môi trường local nếu cần thử route dọn báo cáo. Không gọi route này bằng tay trên production.
 
-## Những điều cần nhớ
+## Lưu ý bảo mật và kiểm thử
 
-- Netlify cần **repository gốc**, không chọn `web/` làm Base directory; `web/` là publish directory chứ không chứa source Functions.
-- Supabase chỉ lưu dữ liệu và cấu hình Auth. SQL migration được chạy trong Supabase SQL Editor; khóa bí mật backend đặt trong Netlify.
-- Nếu đổi domain Netlify, build lại extension với `--site-url` mới và phát hành phiên bản mới để cập nhật quyền host.
-- Chỉ kiểm thử bằng dữ liệu mẫu trên preview. Báo cáo thử nghiệm cũng được lưu trong Supabase đã cấu hình.
-- Với lệnh build extension, thay URL ví dụ bằng URL HTTPS production trước khi phát hành công khai.
+- Báo cáo gửi lên Supabase thật sẽ nằm trong database thật; dùng URL demo khi thử.
+- `GET /api/health` chỉ xác nhận Function phản hồi, không xác nhận Supabase hoạt động. Hãy thử tra cứu và gửi một báo cáo demo.
+- Dashboard cần tài khoản Supabase Auth có email nằm trong `ADMIN_EMAILS`.
+- Báo cáo chỉ được công khai sau khi quản trị viên xác minh với nguồn HTTPS đáng tin cậy.
+- Kết quả “chưa có dữ liệu” không có nghĩa website an toàn.

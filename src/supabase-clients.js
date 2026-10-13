@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 function required(name) {
   const value = process.env[name];
-  if (!value) throw Object.assign(new Error(`Chưa cấu hình ${name} trên Netlify.`), { status: 503 });
+  if (!value) throw Object.assign(new Error(`Chưa cấu hình ${name} trên Vercel.`), { status: 503 });
   return value;
 }
 

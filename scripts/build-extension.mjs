@@ -9,10 +9,10 @@ const args = new Map(process.argv.slice(2).filter((item) => item.startsWith("--"
   const [key, ...value] = item.slice(2).split("="); return [key, value.join("=")];
 }));
 const siteUrl = args.get("site-url") || process.env.PHISHLENS_SITE_URL;
-if (!siteUrl) throw new Error("Dùng --site-url=https://<site>.netlify.app hoặc đặt PHISHLENS_SITE_URL.");
+if (!siteUrl) throw new Error("Dùng --site-url=https://<site>.vercel.app hoặc đặt PHISHLENS_SITE_URL.");
 const parsed = new URL(siteUrl);
 if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.pathname !== "/" || parsed.search || parsed.hash) {
-  throw new Error("Site URL phải là origin HTTPS, ví dụ https://phishlens.netlify.app");
+  throw new Error("Site URL phải là origin HTTPS, ví dụ https://phishlens.vercel.app");
 }
 
 const output = resolve(root, args.get("out") || "dist");
