@@ -164,6 +164,10 @@ test("AI analysis returns useful machine-readable errors for malformed output, p
   const limitedResponse = await limited.analyze(post("https://phishlens.test/api/analyze", body));
   assert.equal(limitedResponse.status, 503);
   assert.equal((await limitedResponse.json()).code, "GEMINI_RATE_LIMITED");
+  const unavailable = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ error: { status: "UNAVAILABLE", message: "High demand." } }, { status: 503 }) });
+  const unavailableResponse = await unavailable.analyze(post("https://phishlens.test/api/analyze", body));
+  assert.equal(unavailableResponse.status, 503);
+  assert.equal((await unavailableResponse.json()).code, "GEMINI_UNAVAILABLE");
   const denied = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({}, { status: 403 }) });
   assert.equal((await (await denied.analyze(post("https://phishlens.test/api/analyze", body))).json()).code, "GEMINI_AUTH_FAILED");
   const rejected = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ error: { status: "INVALID_ARGUMENT", message: "Unsupported generation setting." } }, { status: 400 }) });

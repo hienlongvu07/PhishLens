@@ -80,6 +80,7 @@ async function readAiResponse(response) {
       AI_NOT_CONFIGURED: "AI chưa được cấu hình trên máy chủ.",
       AI_MODEL_INVALID: "Tên model Gemini trên máy chủ không hợp lệ.",
       GEMINI_RATE_LIMITED: "Gemini đang giới hạn yêu cầu. Hãy thử lại sau.",
+      GEMINI_UNAVAILABLE: "Gemini đang quá tải tạm thời. Hãy chờ một chút rồi thử lại.",
       GEMINI_AUTH_FAILED: "Gemini từ chối API key. Kiểm tra cấu hình trên Vercel.",
       GEMINI_MODEL_NOT_FOUND: "Không tìm thấy model Gemini đã cấu hình.",
       GEMINI_REQUEST_INVALID: "Gemini từ chối yêu cầu. Mở chi tiết kỹ thuật để xem lý do.",

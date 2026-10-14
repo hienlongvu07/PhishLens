@@ -192,14 +192,16 @@ export function createApiHandlers({ makePublicClient = publicSupabase, makeAdmin
         });
         if (!upstream.ok) {
           const providerStatus = upstream.status;
-          const code = providerStatus === 429 ? "GEMINI_RATE_LIMITED"
-            : providerStatus === 401 || providerStatus === 403 ? "GEMINI_AUTH_FAILED"
-              : providerStatus === 404 ? "GEMINI_MODEL_NOT_FOUND"
-                : providerStatus === 400 ? "GEMINI_REQUEST_INVALID" : "AI_PROVIDER_ERROR";
-          const status = providerStatus === 429 ? 503 : 502;
           let providerError = null;
           try { providerError = (await upstream.json())?.error || null; } catch { /* Keep provider bodies out of logs and responses. */ }
           const providerReason = typeof providerError?.status === "string" ? providerError.status.slice(0, 80) : "";
+          const unavailable = providerStatus === 503 || providerReason === "UNAVAILABLE";
+          const code = providerStatus === 429 ? "GEMINI_RATE_LIMITED"
+            : providerStatus === 401 || providerStatus === 403 ? "GEMINI_AUTH_FAILED"
+              : providerStatus === 404 ? "GEMINI_MODEL_NOT_FOUND"
+                : providerStatus === 400 ? "GEMINI_REQUEST_INVALID"
+                  : unavailable ? "GEMINI_UNAVAILABLE" : "AI_PROVIDER_ERROR";
+          const status = providerStatus === 429 || unavailable ? 503 : 502;
           let providerMessage = typeof providerError?.message === "string" ? providerError.message : "";
           providerMessage = providerMessage.replace(/[\r\n\t]+/g, " ").replace(/\s{2,}/g, " ").trim();
           if (apiKey) providerMessage = providerMessage.replaceAll(apiKey, "[redacted]");
