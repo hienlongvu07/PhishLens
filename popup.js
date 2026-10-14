@@ -104,6 +104,7 @@ async function readAiResponse(response) {
       GEMINI_RATE_LIMITED: "Gemini đang giới hạn yêu cầu. Hãy thử lại sau.",
       GEMINI_AUTH_FAILED: "Gemini từ chối API key. Kiểm tra cấu hình trên Vercel.",
       GEMINI_MODEL_NOT_FOUND: "Không tìm thấy model Gemini đã cấu hình.",
+      GEMINI_REQUEST_INVALID: "Gemini từ chối cấu hình yêu cầu. Kiểm tra model và cập nhật API trên Vercel.",
       AI_TIMEOUT: "Gemini phản hồi quá thời gian chờ.",
       AI_INVALID_OUTPUT: "Gemini trả về kết quả không đọc được. Hãy thử lại.",
       AI_SERVICE_ERROR: "Dịch vụ AI đang gặp lỗi. Kết quả kiểm tra cục bộ vẫn còn."

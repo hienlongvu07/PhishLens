@@ -136,6 +136,7 @@ test("AI analysis accepts only hostname and signal codes and returns verified so
   assert.equal(JSON.stringify(requests[0].body).includes("must-not-send"), false);
   assert.equal(requests[0].url, "https://generativelanguage.googleapis.com/v1beta/models/test-model:generateContent");
   assert.equal(requests[0].init.headers["x-goog-api-key"], "test-key");
+  assert.equal("temperature" in requests[0].body.generationConfig, false);
 });
 
 test("AI analysis validates its small allowlisted payload and requires server configuration", async () => {
@@ -163,6 +164,8 @@ test("AI analysis returns useful machine-readable errors for malformed output, p
   assert.equal((await limitedResponse.json()).code, "GEMINI_RATE_LIMITED");
   const denied = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({}, { status: 403 }) });
   assert.equal((await (await denied.analyze(post("https://phishlens.test/api/analyze", body))).json()).code, "GEMINI_AUTH_FAILED");
+  const rejected = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({}, { status: 400 }) });
+  assert.equal((await (await rejected.analyze(post("https://phishlens.test/api/analyze", body))).json()).code, "GEMINI_REQUEST_INVALID");
   const timeout = createApiHandlers({ ...baseOptions, fetchImpl: async () => { throw Object.assign(new Error("timeout"), { name: "TimeoutError" }); } });
   const timeoutResponse = await timeout.analyze(post("https://phishlens.test/api/analyze", body));
   assert.equal(timeoutResponse.status, 504);
