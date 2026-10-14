@@ -8,22 +8,44 @@
 </head>
 <body>
   <main>
-    <header><div class="brand-mark" aria-hidden="true">◉</div><div><h1>PhishLens</h1><p class="tagline">Hiểu liên kết trước khi tin</p></div><span class="local-tag">XỬ LÝ CỤC BỘ</span></header>
+    <header><div class="brand-mark" aria-hidden="true">◉</div><div><h1>PhishLens</h1><p class="tagline">Hiểu liên kết trước khi tin</p></div></header>
     <section class="score-card" aria-live="polite">
       <p class="eyebrow">ĐÁNH GIÁ THEO QUY TẮC</p>
       <p id="level" class="level">Đang phân tích…</p>
       <p id="domain" class="domain">Đang đọc trang hiện tại…</p>
       <p id="summary" class="summary"></p>
+      <div id="risk-score-card" class="risk-score hidden" aria-label="Điểm rủi ro theo quy tắc">
+        <div class="score-total"><strong id="risk-score">—</strong><span>/100 · điểm rủi ro</span></div>
+        <div class="score-track" role="progressbar" aria-label="Điểm rủi ro theo quy tắc" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="score-fill"></span></div>
+        <p>Điểm rủi ro không phải xác suất lừa đảo; điểm thấp không đồng nghĩa an toàn.</p>
+      </div>
+      <section id="reputation-area" class="reputation-area" aria-label="Đối chiếu Google Safe Browsing">
+        <div class="reputation-heading"><b>Đối chiếu nguồn ngoài</b><a href="https://developers.google.com/safe-browsing" target="_blank" rel="noopener noreferrer">Google Safe Browsing ↗</a></div>
+        <p id="reputation-status" class="reputation-status" role="status" aria-live="polite">Tra cứu nguồn ngoài khi bạn đồng ý.</p>
+        <p class="reputation-disclosure">Gửi giao thức, tên miền, cổng và đường dẫn qua PhishLens tới Google; bỏ thông tin đăng nhập, query, fragment. Dùng phi thương mại.</p>
+        <div id="reputation-consent-actions" class="reputation-actions hidden">
+          <button id="allow-reputation" class="mini-button">Đồng ý và bật tự tra cứu</button>
+          <button id="decline-reputation" class="mini-secondary">Chỉ dùng quy tắc</button>
+        </div>
+        <div id="reputation-optout-actions" class="reputation-actions hidden">
+          <button id="enable-reputation" class="mini-button">Bật tra cứu nguồn ngoài</button>
+        </div>
+        <div id="reputation-enabled-actions" class="reputation-actions hidden">
+          <button id="disable-reputation" class="mini-secondary">Tắt tự tra cứu</button>
+        </div>
+        <div id="reputation-result" class="reputation-result hidden"></div>
+      </section>
     </section>
     <nav class="tabs" aria-label="Chi tiết phân tích"><button class="tab active" data-panel="signals">Dấu hiệu <span id="finding-count">0</span></button><button class="tab" data-panel="url-parts">Cấu trúc URL</button><button class="tab" data-panel="guide">Cẩm nang</button></nav>
-    <section id="signals" class="panel"><div id="findings"></div><p id="no-findings" class="note hidden">Chưa thấy dấu hiệu rõ trong lần kiểm tra này. Điều đó không đảm bảo website an toàn.</p></section>
+    <section id="signals" class="panel"><div id="findings"></div><div id="score-breakdown" class="score-breakdown hidden"></div><p id="no-findings" class="note hidden">Chưa thấy dấu hiệu rõ trong lần kiểm tra này. Điều đó không đảm bảo website an toàn.</p></section>
     <section id="url-parts" class="panel hidden"><p class="panel-intro">URL được chia thành các phần dưới đây để bạn nhận ra tên miền và đích đến.</p><dl id="parts" class="parts"></dl></section>
     <section id="guide" class="panel hidden"><div id="mini-guide" class="guide-mini"></div><a id="guide-link" class="site-guide" href="#cam-nang" target="_blank" rel="noopener noreferrer">Mở cẩm nang đầy đủ trên website ↗</a></section>
     <section class="ai-area" aria-labelledby="ai-title">
-      <p id="ai-title" class="ai-kicker">PHÂN TÍCH BỔ SUNG · TÙY CHỌN</p>
+      <p id="ai-title" class="ai-kicker">Giải thích thêm với AI</p>
       <button id="ai-analyze" class="ai-button" disabled>✦ Nhờ AI phân tích thêm</button>
-      <p class="ai-consent-note">Chỉ gửi hostname và mã dấu hiệu sau khi bạn xác nhận.</p>
+      <p id="ai-consent-note" class="ai-consent-note" role="status">Chỉ gửi hostname và mã dấu hiệu sau khi bạn xác nhận.</p>
       <div id="ai-status" class="ai-status" role="status" aria-live="polite"></div>
+      <details id="ai-error-details" class="ai-error-details hidden"><summary>Chi tiết kỹ thuật</summary><code id="ai-error-technical"></code></details>
       <div id="community-result" class="community-result hidden"></div>
       <section id="ai-result" class="ai-result hidden" aria-label="Giải thích từ AI"></section>
     </section>    <div class="report-area"><label class="report-type-label" for="report-type">Loại nghi ngờ</label><select id="report-type"><option value="Liên kết rút gọn/website/tệp lạ">Liên kết rút gọn/website/tệp lạ</option><option value="Giả mạo ngân hàng/tổ chức">Giả mạo ngân hàng/tổ chức</option><option value="Lừa lấy mật khẩu hoặc OTP">Lừa lấy mật khẩu hoặc OTP</option><option value="Giả mạo cơ quan/dịch vụ công">Giả mạo cơ quan/dịch vụ công</option><option value="Tuyển dụng/việc làm giả">Tuyển dụng/việc làm giả</option><option value="Quà tặng/khuyến mãi">Quà tặng/khuyến mãi</option><option value="Đầu tư/vay đáng ngờ">Đầu tư/vay đáng ngờ</option><option value="Khác">Khác</option></select><button id="report" class="report" disabled>Gửi báo cáo đến website PhishLens</button><p id="report-status" class="report-status">URL chỉ được gửi sau khi bạn xem trước và xác nhận.</p></div>

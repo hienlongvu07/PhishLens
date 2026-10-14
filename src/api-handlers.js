@@ -29,6 +29,25 @@ function parseUrl(value) {
     return { parsed, original: value };
   } catch { return null; }
 }
+function reputationUrl(value) {
+  if (typeof value !== "string" || value.length > 2048 || value !== value.trim()) return null;
+  try {
+    const parsed = new URL(value);
+    if (!["http:", "https:"].includes(parsed.protocol) || !parsed.hostname) return null;
+    parsed.username = "";
+    parsed.password = "";
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString();
+  } catch { return null; }
+}
+function parseCacheDuration(value) {
+  if (typeof value !== "string") return null;
+  const match = value.match(/^(\d+(?:\.\d+)?)s$/);
+  if (!match) return null;
+  const seconds = Number(match[1]);
+  return Number.isFinite(seconds) && seconds > 0 && seconds <= 8640000000 ? seconds : null;
+}
 function hostnameFromLookup(value) {
   if (typeof value !== "string") return "";
   const parsed = parseUrl(value);
@@ -126,7 +145,7 @@ function cleanAiResult(value) {
   return summary && evidence && nextSteps && limitations ? { summary, evidence, nextSteps, limitations } : null;
 }
 
-export function createApiHandlers({ makePublicClient = publicSupabase, makeAdminClient = adminSupabase, isAllowedAdmin = adminEmailAllowed, fetchImpl = globalThis.fetch, geminiApiKey = () => process.env.GEMINI_API_KEY, geminiModel = () => process.env.GEMINI_MODEL || "gemini-3.6-flash" } = {}) {
+export function createApiHandlers({ makePublicClient = publicSupabase, makeAdminClient = adminSupabase, isAllowedAdmin = adminEmailAllowed, fetchImpl = globalThis.fetch, geminiApiKey = () => process.env.GEMINI_API_KEY, geminiModel = () => process.env.GEMINI_MODEL || "gemini-3.6-flash", safeBrowsingApiKey = () => process.env.GOOGLE_SAFE_BROWSING_API_KEY } = {}) {
   return {
     health: async () => json(200, { ok: true, name: "PhishLens" }),
 
@@ -156,7 +175,7 @@ export function createApiHandlers({ makePublicClient = publicSupabase, makeAdmin
           return json(400, { error: "TÃªn miá»n hoáº·c mÃ£ dáº¥u hiá»‡u khÃ´ng há»£p lá»‡." });
         }
         const apiKey = geminiApiKey();
-        if (!apiKey) return json(503, { error: "Dá»‹ch vá»¥ AI chÆ°a Ä‘Æ°á»£c cáº¥u hÃ¬nh." });
+        if (!apiKey) return json(503, { code: "AI_NOT_CONFIGURED", error: "AI is not configured." });
 
         const db = makeAdminClient();
         const { data: alert, error: alertError } = await db.from("verified_alerts")
@@ -176,7 +195,7 @@ export function createApiHandlers({ makePublicClient = publicSupabase, makeAdmin
         const signalCodes = [...new Set(body.signalCodes)];
         const input = { hostname, signalCodes, signalDetails: signalCodes.map((code) => ({ code, meaning: AI_SIGNAL_MEANINGS[code] })), verifiedPhishLensAlert: community.status === "verified" ? community : null };
         const model = geminiModel();
-        if (typeof model !== "string" || !/^[a-zA-Z0-9._-]{1,80}$/.test(model)) return json(503, { error: "Gemini model configuration is invalid." });
+        if (typeof model !== "string" || !/^[a-zA-Z0-9._-]{1,80}$/.test(model)) return json(503, { code: "AI_MODEL_INVALID", error: "Gemini model configuration is invalid." });
         const upstream = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
           method: "POST",
           headers: { "x-goog-api-key": apiKey, "Content-Type": "application/json" },
@@ -190,17 +209,78 @@ export function createApiHandlers({ makePublicClient = publicSupabase, makeAdmin
             }
           })
         });
-        if (!upstream.ok) throw Object.assign(new Error("Gemini request failed"), { status: 502 });
-        const raw = await upstream.json();
+        if (!upstream.ok) {
+          const providerStatus = upstream.status;
+          const code = providerStatus === 429 ? "GEMINI_RATE_LIMITED"
+            : providerStatus === 401 || providerStatus === 403 ? "GEMINI_AUTH_FAILED"
+              : providerStatus === 404 ? "GEMINI_MODEL_NOT_FOUND" : "AI_PROVIDER_ERROR";
+          const status = providerStatus === 429 ? 503 : 502;
+          console.warn("PhishLens Gemini request failed", { status: providerStatus, model });
+          return json(status, { code, error: "Gemini request failed." });
+        }
+        let raw;
+        try { raw = await upstream.json(); }
+        catch { return json(502, { code: "AI_INVALID_OUTPUT", error: "Gemini returned invalid JSON." }); }
         let parsed;
         try { parsed = JSON.parse(outputText(raw) || "null"); }
-        catch { throw Object.assign(new Error("Invalid AI response"), { status: 502 }); }
+        catch { return json(502, { code: "AI_INVALID_OUTPUT", error: "Gemini returned invalid structured output." }); }
         const result = cleanAiResult(parsed);
-        if (!result) throw Object.assign(new Error("Invalid AI response"), { status: 502 });
+        if (!result) return json(502, { code: "AI_INVALID_OUTPUT", error: "Gemini returned invalid structured output." });
         return json(200, { community, ai: result });
       } catch (error) {
-        if (error?.name === "TimeoutError" || error?.name === "AbortError") error = Object.assign(new Error("AI request timed out"), { status: 504 });
-        return fail(error);
+        if (error?.name === "TimeoutError" || error?.name === "AbortError") {
+          return json(504, { code: "AI_TIMEOUT", error: "Gemini request timed out." });
+        }
+        if (Number.isInteger(error?.status) && error.status < 500) return json(error.status, { code: "INVALID_REQUEST", error: error.message });
+        console.error("PhishLens AI analysis failed", error?.name || "UnknownError");
+        return json(502, { code: "AI_SERVICE_ERROR", error: "AI service is temporarily unavailable." });
+      }
+    },
+
+    reputation: async (request) => {
+      let inputUrl = "";
+      try {
+        const body = await readJson(request, 2500);
+        if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).some((key) => key !== "url")) {
+          return json(400, { error: "Chỉ chấp nhận URL cần tra cứu." });
+        }
+        inputUrl = reputationUrl(body.url) || "";
+        if (!inputUrl) return json(400, { error: "URL phải là HTTP(S), tối đa 2.048 ký tự." });
+        const apiKey = safeBrowsingApiKey();
+        if (!apiKey) return json(503, { error: "Google Safe Browsing chưa được cấu hình trên máy chủ." });
+
+        const upstreamUrl = new URL("https://safebrowsing.googleapis.com/v5/urls:search");
+        upstreamUrl.searchParams.set("key", apiKey);
+        upstreamUrl.searchParams.append("urls[]", inputUrl);
+        const upstream = await fetchImpl(upstreamUrl, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          signal: AbortSignal.timeout(8000),
+          cache: "no-store"
+        });
+        if (!upstream.ok) return json(upstream.status === 429 ? 503 : 502, { error: "Google Safe Browsing hiện không thể hoàn tất tra cứu." });
+        let data;
+        try { data = await upstream.json(); }
+        catch { return json(502, { error: "Phản hồi từ Google Safe Browsing không hợp lệ." }); }
+        if ((data?.threats !== undefined && !Array.isArray(data.threats)) || !parseCacheDuration(data?.cacheDuration)) {
+          return json(502, { error: "Phản hồi từ Google Safe Browsing thiếu dữ liệu cần thiết." });
+        }
+        const threats = data.threats || [];
+        const threatTypes = [...new Set(threats.flatMap((threat) => Array.isArray(threat?.threatTypes) ? threat.threatTypes : []))]
+          .filter((type) => typeof type === "string" && type.length <= 80);
+        return json(200, {
+          status: threats.length ? "match" : "no_match",
+          source: "Google Safe Browsing",
+          threatTypes,
+          cacheDurationSeconds: parseCacheDuration(data.cacheDuration)
+        });
+      } catch (error) {
+        if (error?.name === "TimeoutError" || error?.name === "AbortError") {
+          return json(504, { error: "Tra cứu Google Safe Browsing hết thời gian chờ." });
+        }
+        if (Number.isInteger(error?.status) && error.status < 500) return json(error.status, { error: error.message });
+        console.error("PhishLens reputation lookup failed:", error?.name || "UnknownError");
+        return json(502, { error: "Không thể kết nối Google Safe Browsing lúc này." });
       }
     },
 

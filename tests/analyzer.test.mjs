@@ -1,11 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { analyzeUrl } from "../src/analyzer.js";
+import { analyzeUrl, riskBand, SIGNAL_RISK_POINTS } from "../src/analyzer.js";
 
 test("HTTPS phổ biến không được gọi là an toàn và có lời giải thích giới hạn", () => {
   const result = analyzeUrl("https://example.com/about");
-  assert.equal(result.level, "Chưa thấy dấu hiệu rõ");
+  assert.equal(result.level, "Ít dấu hiệu được phát hiện");
+  assert.equal(result.riskScore, 0);
   assert.equal(result.findings.length, 0);
   assert.equal(result.parts.protocol, "HTTPS");
   assert.match(result.parts.path, /about/);
@@ -13,7 +14,8 @@ test("HTTPS phổ biến không được gọi là an toàn và có lời giải
 
 test("HTTP được đánh dấu đáng ngờ và có hướng dẫn", () => {
   const result = analyzeUrl("http://example.com");
-  assert.equal(result.level, "Có dấu hiệu đáng ngờ");
+  assert.equal(result.level, "Ít dấu hiệu được phát hiện");
+  assert.equal(result.riskScore, 12);
   assert.match(result.findings.join(" "), /HTTP/);
   assert.match(result.advice.join(" "), /OTP/);
 });
@@ -36,7 +38,8 @@ test("nhiều cấp và ký tự Unicode tương đồng được giải thích"
   assert.match(analyzeUrl("https://a.b.c.d.example.com").findings.join(" "), /cấp/);
   const unicode = analyzeUrl("https://раypal.com");
   assert.match(unicode.findings.join(" "), /Unicode|punycode/);
-  assert.equal(unicode.level, "Có dấu hiệu đáng ngờ");
+  assert.equal(unicode.riskScore, 30);
+  assert.equal(unicode.level, "Cần kiểm tra thêm");
 });
 
 test("URL có tham số, cổng và fragment được tách thành phần", () => {
@@ -57,6 +60,20 @@ test("additional signals have stable codes for AI", () => {
   assert.match(result.findings.join(" "), /cổng|từ khóa|số thay/);
 });
 
+test("risk score weights and band boundaries are explicit and capped", () => {
+  assert.equal(SIGNAL_RISK_POINTS.lookalike_brand, 25);
+  assert.equal(SIGNAL_RISK_POINTS.sample_blocklist, 30);
+  assert.equal(riskBand(24), "low");
+  assert.equal(riskBand(25), "caution");
+  assert.equal(riskBand(59), "caution");
+  assert.equal(riskBand(60), "high");
+  assert.equal(riskBand(null), "unavailable");
+  const manySignals = analyzeUrl("http://user@а.longlonglong-longlonglong.a.b.c.d.paypa1.com:8443/%2f/login");
+  assert.equal(manySignals.riskScore, 100);
+  assert.equal(manySignals.band, "high");
+  assert.equal(analyzeUrl("not-url").riskScore, null);
+});
+
 test("popup asks before AI fetch and constructs a hostname plus signal-code payload", async () => {
   const popup = await readFile(new URL("../popup.js", import.meta.url), "utf8");
   const handler = popup.slice(popup.indexOf('$("#ai-analyze").addEventListener'), popup.indexOf('$("#report").addEventListener'));
@@ -64,4 +81,23 @@ test("popup asks before AI fetch and constructs a hostname plus signal-code payl
   assert.match(handler, /if \(!approved\) return/);
   assert.match(handler, /JSON\.stringify\(\{ hostname, signalCodes \}\)/);
   assert.doesNotMatch(handler, /currentUrl|\.pathname|\.search|\.hash|\.cookie|innerText/);
+});
+
+test("popup explains unsupported tabs, renders risk contributions, and opts into Safe Browsing", async () => {
+  const popup = await readFile(new URL("../popup.js", import.meta.url), "utf8");
+  const html = await readFile(new URL("../popup.html", import.meta.url), "utf8");
+  assert.match(popup, /Mở một website bắt đầu bằng http:\/\/ hoặc https:\/\//);
+  assert.match(popup, /safeBrowsingConsent/);
+  assert.match(popup, /urlForReputation/);
+  assert.match(popup, /url\.search = ""; url\.hash = ""/);
+  assert.match(popup, /const normalized = urlForReputation\(currentUrl\)/);
+  assert.match(popup, /body: JSON\.stringify\(\{ url: normalized \}\)/);
+  assert.match(popup, /\/api\/reputation/);
+  assert.match(popup, /Math\.max\(currentAnalysis\.riskScore, 80\)/);
+  assert.match(popup, /không làm giảm điểm quy tắc/);
+  assert.match(popup, /Điểm đóng góp theo dấu hiệu/);
+  assert.match(html, /bỏ thông tin đăng nhập, query, fragment/i);
+  assert.doesNotMatch(html, /0–24:.*25–59:.*60–100:/);
+  assert.match(html, /Chi tiết kỹ thuật/);
+  assert.match(popup, /phản hồi không phải JSON/);
 });

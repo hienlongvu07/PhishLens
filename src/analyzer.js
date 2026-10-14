@@ -3,6 +3,19 @@ export const SAMPLE_BRANDS = ["google", "facebook", "microsoft", "paypal", "amaz
 export const SHORTENER_DOMAINS = ["bit.ly", "tinyurl.com", "t.co", "goo.gl", "is.gd"];
 export const SAMPLE_SUSPICIOUS_DOMAINS = ["login-verify-example.test", "secure-account-demo.test"];
 export const AI_SIGNAL_CODES = Object.freeze(["http", "many_subdomains", "long_hostname", "credentials_at", "unicode_or_punycode", "encoded_path", "hyphenated_hostname", "shortener", "lookalike_brand", "sample_blocklist", "ip_address", "suspicious_port", "suspicious_keyword"]);
+export const SIGNAL_RISK_POINTS = Object.freeze({
+  credentials_at: 25, unicode_or_punycode: 25, lookalike_brand: 25, ip_address: 25,
+  sample_blocklist: 30,
+  http: 12, suspicious_port: 12, shortener: 12,
+  many_subdomains: 5, long_hostname: 5, encoded_path: 5, hyphenated_hostname: 5, suspicious_keyword: 5
+});
+
+export function riskBand(score) {
+  if (!Number.isFinite(score)) return "unavailable";
+  if (score >= 60) return "high";
+  if (score >= 25) return "caution";
+  return "low";
+}
 
 const CONFUSABLES = /[\u0430\u0435\u043e\u0440\u0441\u0445\u0456\u04cf]/i;
 
@@ -31,16 +44,15 @@ export function analyzeUrl(input) {
     url = new URL(input);
     if (!["http:", "https:"].includes(url.protocol) || !url.hostname) throw new Error("unsupported URL");
   } catch {
-    return { valid: false, hostname: "Không xác định", level: "Cần kiểm tra thêm", findings: ["Không thể phân tích URL này. Hãy kiểm tra địa chỉ http:// hoặc https://."], advice: [], parts: null };
+    return { valid: false, hostname: "Không xác định", level: "Không thể phân tích trang này", riskScore: null, band: "unavailable", scoreBreakdown: [], findings: ["Không thể phân tích URL này. Hãy mở một website có địa chỉ http:// hoặc https://."], advice: [], parts: null };
   }
 
   const host = url.hostname.toLowerCase().replace(/\.$/, "");
   let displayHost = host;
   try { displayHost = decodeURIComponent(new URL(input).hostname); } catch { /* Giữ hostname chuẩn hóa */ }
   const findings = [];
-  let suspicious = false;
   const caution = (text) => findings.push(text);
-  const risk = (text) => { findings.push(text); suspicious = true; };
+  const risk = (text) => findings.push(text);
 
   if (url.protocol === "http:") risk("Dùng HTTP: kết nối không mã hóa, nên người khác trên đường truyền có thể đọc hoặc sửa dữ liệu.");
   const labels = host.split(".");
@@ -84,7 +96,10 @@ export function analyzeUrl(input) {
   addSignal("ip_address", /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host) || host.includes(":"));
   addSignal("suspicious_port", Boolean(url.port && !["80", "443"].includes(url.port)));
   addSignal("suspicious_keyword", /(?:login|verify|secure|account|wallet|payment|bonus|claim|job|invest|profit)/i.test(`${host}${url.pathname}`));
-  const level = suspicious ? "Có dấu hiệu đáng ngờ" : findings.length ? "Cần kiểm tra thêm" : "Chưa thấy dấu hiệu rõ";
+  const scoreBreakdown = signals.map(({ code }) => ({ code, points: SIGNAL_RISK_POINTS[code] || 0 }));
+  const riskScore = Math.min(100, scoreBreakdown.reduce((total, item) => total + item.points, 0));
+  const band = riskBand(riskScore);
+  const level = band === "high" ? "Nhiều dấu hiệu đáng ngờ" : band === "caution" ? "Cần kiểm tra thêm" : "Ít dấu hiệu được phát hiện";
   const advice = findings.length ? [
     "Chưa xác minh? Không nhập mật khẩu, mã OTP hoặc thông tin thanh toán.",
     "Tự mở ứng dụng hoặc tự nhập địa chỉ website chính thức để xác minh.",
@@ -93,7 +108,7 @@ export function analyzeUrl(input) {
   ] : [];
 
   return {
-    valid: true, hostname: displayHost, canonicalHostname: host, signals, level, findings, advice,
+    valid: true, hostname: displayHost, canonicalHostname: host, signals, scoreBreakdown, riskScore, band, level, findings, advice,
     parts: {
       protocol: url.protocol.replace(":", "").toUpperCase(), host: displayHost,
       port: url.port || "Mặc định", path: url.pathname || "/",

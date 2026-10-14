@@ -10,6 +10,14 @@ Nút **Nhờ AI phân tích thêm** chỉ chạy sau xác nhận riêng. Extensi
 
 API mới: `POST /api/analyze` với `{ "hostname": "example.com", "signalCodes": ["http"] }`. Không gửi URL hoặc trường khác. Lời giải thích không được lưu vào Supabase. Với Gemini API free tier, Google có thể dùng prompt/phản hồi để cải thiện sản phẩm; xem điều khoản Google trước khi bật cho người dùng thật.
 
+## Điểm rủi ro và Google Safe Browsing
+
+Popup hiển thị điểm rủi ro theo quy tắc 0–100, không phải phần trăm xác suất website lừa đảo. Điểm được cộng minh bạch theo tín hiệu: giả thương hiệu/ký tự gây nhầm lẫn/địa chỉ IP/dấu @ +25; danh sách mẫu +30; HTTP/cổng lạ/rút gọn +12; tên miền dài/nhiều cấp/gạch nối/đường dẫn mã hóa/từ khóa +5 mỗi dấu hiệu; tổng tối đa 100. Dải điểm: 0–24 ít dấu hiệu được phát hiện, 25–59 cần kiểm tra thêm, 60–100 nhiều dấu hiệu đáng ngờ. Điểm thấp không có nghĩa website an toàn.
+
+Lần đầu mở popup trên URL HTTP(S), người dùng phải chủ động đồng ý. Sau đó extension tự tra cứu mỗi lần mở popup cho tới khi tắt lựa chọn. `POST /api/reputation` chỉ nhận `{ "url": "https://example.com/path" }`; server loại thông tin đăng nhập, query và fragment rồi mới gửi tới Google Safe Browsing. Kết quả khớp nâng điểm tối thiểu lên 80; không khớp không giảm điểm và không chứng minh an toàn. URL không lưu ở Supabase; extension giữ lựa chọn đồng ý cục bộ và cache phiên theo thời hạn Google trả về.
+
+Để bật tra cứu, khai báo `GOOGLE_SAFE_BROWSING_API_KEY` trong Vercel (đánh dấu secret), bật API tương ứng trong Google Cloud, rồi redeploy. Không đặt khóa trong extension, website tĩnh, GitHub hay file đã commit. Safe Browsing trong dự án này chỉ dành cho demo phi thương mại; đọc [điều khoản](https://developers.google.com/safe-browsing/terms) và [tài liệu URL Search](https://developers.google.com/safe-browsing/reference/rest/v5/urls/search). Cần thêm rate limit Vercel Firewall cho `/api/reputation`.
+
 ## Cấu trúc
 
 - `web/`: website công khai, cẩm nang, tra cứu, biểu mẫu gửi báo cáo, dashboard và chính sách riêng tư.
@@ -50,7 +58,7 @@ Mở địa chỉ local do Vercel CLI hiển thị. Website và Functions cùng 
 1. Import repository từ thư mục gốc. `vercel.json` cấu hình website `web/`, bảo mật response headers và cron; API nằm trong `api/`.
 2. Trong **Project Settings → Environment Variables**, thêm `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAILS`, `CRON_SECRET`. Không commit `.env` hoặc secrets.
 3. Deploy và kiểm tra `/`, `/privacy.html`, `/admin.html`, `/api/health`, gửi báo cáo thử, kiểm duyệt và tra cứu. Dùng dữ liệu thử nghiệm, không đưa dữ liệu người dùng thật vào preview.
-4. Sau khi site production có URL `https://<ten-site>.vercel.app`, thay placeholder `[[PRIVACY_CONTACT_EMAIL]]` trong `web/privacy.html` bằng địa chỉ hỗ trợ thật, rồi deploy lại.
+4. Sau khi site production có URL `https://<ten-site>.vercel.app`, kiểm tra trang chính sách riêng tư, địa chỉ email liên hệ và các URL nguồn, rồi deploy lại.
 5. Dùng cùng một URL site cố định cho website và API. Nếu đổi domain sau này, cần đóng gói và phát hành extension với quyền host mới.
 
 Dashboard sử dụng Supabase Auth. Tài khoản phải vừa tồn tại trong Supabase Auth vừa có email nằm trong `ADMIN_EMAILS`. Khóa service role chỉ được Vercel Functions sử dụng. RLS chặn người chưa đăng nhập đọc/sửa báo cáo; public lookup chỉ trả cảnh báo đã xác minh và trạng thái tổng quát khi đang có báo cáo chờ.
@@ -61,7 +69,7 @@ Dashboard sử dụng Supabase Auth. Tài khoản phải vừa tồn tại trong
 - Website cũng có hộp xem lại URL và nội dung trước khi gửi. Báo cáo gồm URL đầy đủ, loại, mô tả tùy chọn và nguồn gửi. Không đính kèm mật khẩu, OTP, cookie hay nội dung trang.
 - Báo cáo mới chưa phải kết luận. Để chọn **Đã xác minh**, quản trị viên phải điền tóm tắt công khai và nguồn HTTPS đã đối chiếu. Lookup công khai hiển thị hostname, loại báo cáo, tóm tắt và liên kết nguồn; URL gốc, query/fragment, mô tả và ghi chú quản trị vẫn riêng tư.
 - Báo cáo gốc được dọn sau 12 tháng bằng scheduled function. Cảnh báo công khai đã xác minh có thể tồn tại dưới dạng hostname và nội dung tóm tắt đã biên tập.
-- Trước khi Chrome Web Store phát hành, điền email liên hệ chính sách, xác nhận URL chính sách công khai, mô tả chính xác việc URL được gửi có chủ đích, và khai báo xử lý dữ liệu trong mục Privacy practices của Store listing.
+- Trước khi Chrome Web Store phát hành, xác nhận URL chính sách công khai, mô tả rõ URL đã lọc được gửi tới PhishLens/Google Safe Browsing chỉ sau khi người dùng đồng ý, khai báo Gemini tùy chọn và quyền `storage` trong mục Privacy practices của Store listing. Người dùng có thể tắt tra cứu tự động trong popup.
 
 ## Tra cứu email
 
@@ -95,6 +103,7 @@ Script tạo `dist/extension/` để cài thử và `dist/phishlens-extension.zi
 - `GET /api/health`: health check.
 - `GET /api/lookup?url=<URL-hoặc-host>`: một trong ba trạng thái **Đã được xác minh**, **Đang xem xét**, **Chưa có dữ liệu**. Không trạng thái nào có nghĩa “an toàn”.
 - `POST /api/reports`: nhận `{ url, type, description?, source?, website? }`; URL HTTP(S) tối đa 2.048 ký tự, mô tả tối đa 1.000. Hỗ trợ honeypot; giới hạn tốc độ cần cấu hình trên Vercel Firewall.
+- `POST /api/reputation`: nhận `{ url }`, bỏ userinfo/query/fragment và gửi URL đã chuẩn hóa tới Google Safe Browsing bằng khóa chỉ có ở server; trạng thái không khớp không khẳng định an toàn.
 - `POST /api/admin/login`, `POST /api/admin/refresh`, `POST /api/admin/logout`: phiên Supabase Auth.
 - `GET /api/admin/reports`: danh sách có tìm kiếm, lọc và phân trang.
 - `PATCH /api/admin/reports/:id`: đổi trạng thái qua RPC giao dịch; chỉ admin.

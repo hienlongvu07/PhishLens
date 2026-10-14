@@ -9,13 +9,13 @@ PhishLens là monorepo. Kết nối toàn bộ repository với Vercel từ thư
 | Website | Vercel | Root Directory là repository root; Output Directory là `web`. `vercel.json` đã khai báo. |
 | API và tác vụ định kỳ | Vercel Functions | Các route nằm trong `api/`; cron dọn báo cáo khai báo trong `vercel.json`. |
 | Cơ sở dữ liệu và Auth | Supabase | Giữ project hiện có; không cần chạy lại migration khi chuyển hosting. |
-| Bí mật backend | Vercel → Project Settings → Environment Variables | Khai báo `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAILS`, `CRON_SECRET`. Đánh dấu `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAILS` và `CRON_SECRET` là nhạy cảm. |
+| Bí mật backend | Vercel → Project Settings → Environment Variables | Khai báo `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAILS`, `CRON_SECRET`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `GOOGLE_SAFE_BROWSING_API_KEY`. Đánh dấu các API key và secret là nhạy cảm. |
 | Extension | Chrome Web Store | Build ZIP riêng với domain Vercel; không tải extension lên Vercel hay Supabase. |
 
 ## Deploy lên Vercel
 
 1. Đưa các thay đổi mới nhất lên GitHub/Git repository, rồi tạo project Vercel bằng cách import repository đó. Đặt **Root Directory** là thư mục gốc; Framework Preset chọn **Other** nếu được hỏi. Giữ Install Command mặc định; không cần Build Command cho website tĩnh.
-2. Trong **Project Settings → Environment Variables**, thêm năm biến ở bảng trên cho Production và Preview nếu dùng. `SUPABASE_URL` cùng hai API key phải lấy từ cùng project Supabase; `ADMIN_EMAILS` phải trùng email Auth quản trị. `CRON_SECRET` là chuỗi ngẫu nhiên dài, không dùng lại mật khẩu tài khoản.
+2. Trong **Project Settings → Environment Variables**, thêm các biến cần dùng ở bảng trên cho Production và Preview nếu dùng. `SUPABASE_URL` cùng hai API key phải lấy từ cùng project Supabase; `ADMIN_EMAILS` phải trùng email Auth quản trị. `CRON_SECRET` là chuỗi ngẫu nhiên dài, không dùng lại mật khẩu tài khoản.
 3. Deploy lại sau khi lưu biến môi trường. Mở `/`, `/privacy.html`, `/admin.html` và `/api/health`. Tiếp đó thử `/api/lookup?url=https%3A%2F%2Flogin-verify-example.test`, gửi báo cáo demo, rồi xem dashboard.
 4. Nếu Function lỗi, xem **Vercel → Project → Logs** và lọc function `/api/reports` hoặc `/api/admin/login`. Phần này không cần Supabase Audit Logs.
 5. Trên **Vercel → Firewall**, thêm quy tắc rate limit cho API. Hobby chỉ có một quy tắc rate limit cho mỗi project, vì vậy dùng một ngưỡng chung cho `/api/*` (ví dụ 60 request/phút); giới hạn này không tương đương chính xác với các ngưỡng riêng của Netlify. Gói Pro cho phép nhiều quy tắc riêng hơn. Honeypot trong biểu mẫu vẫn là lớp chống bot cơ bản.
@@ -28,6 +28,14 @@ PhishLens là monorepo. Kết nối toàn bộ repository với Vercel từ thư
 Endpoint `POST /api/analyze` chỉ nhận `{ hostname, signalCodes }`, từ chối trường bổ sung và giới hạn body 2.500 ký tự, tối đa 20 mã tín hiệu. Function truy vấn hostname trong `verified_alerts`, rồi gửi hostname, mã tín hiệu và thông tin cảnh báo đã xác minh (nếu có) tới Gemini `generateContent`. Prompt/kết quả không được ghi vào Supabase; request dùng JSON response schema, timeout 10 giây, đầu ra giới hạn 350 token và được kiểm tra cấu trúc/độ dài. Vercel Firewall rate limit cho `/api/*` cũng nên bao gồm endpoint này.
 
 Nếu thiếu key, timeout hoặc Google Gemini trả lỗi, popup giữ kết quả cục bộ và cho thử lại. Nếu dự án dùng free tier, Google có thể dùng prompt và phản hồi để cải thiện sản phẩm; cân nhắc điều này trước khi bật tính năng công khai. Khi phát hành giao diện popup mới, build lại ZIP bằng `npm.cmd run build:extension -- --site-url=https://<ten-site>.vercel.app` rồi tải bản cập nhật lên Chrome Web Store.
+
+## Tra cứu Google Safe Browsing
+
+Để bật đối chiếu URL, bật Google Safe Browsing API trong Google Cloud rồi thêm `GOOGLE_SAFE_BROWSING_API_KEY` vào Vercel Project Settings → Environment Variables cho Production (và Preview nếu cần). Đánh dấu là secret; khóa chỉ được dùng trong Vercel Function, không đưa vào repository hoặc extension. Redeploy sau khi thêm biến.
+
+Khi mở popup trên trang HTTP(S) lần đầu, người dùng phải chọn **Đồng ý và bật tự tra cứu**; từ chối thì không gửi URL. Lựa chọn được lưu trong extension và có thể tắt bất cứ lúc nào. Mỗi lần mở popup sau khi đã đồng ý, extension gửi URL đã bỏ thông tin đăng nhập, query và fragment tới `POST /api/reputation`; server kiểm tra rồi gọi Google. URL chỉ gồm giao thức, hostname, cổng và đường dẫn. Kết quả được cache trong phiên theo `cacheDuration` Google trả về. Khớp sẽ đặt điểm rủi ro tối thiểu 80; không khớp không giảm điểm và không có nghĩa an toàn. Lỗi/timeout hiển thị riêng và không thay đổi điểm quy tắc.
+
+> **Điều kiện sử dụng:** Google Safe Browsing API trong luồng này chỉ dành cho mục đích phi thương mại. Hiển thị nguồn, thông báo việc URL được gửi sau khi đồng ý, và đọc [điều khoản Google](https://developers.google.com/safe-browsing/terms) cùng [tài liệu `urls.search`](https://developers.google.com/safe-browsing/reference/rest/v5/urls/search). Cấu hình rate limit trên Vercel Firewall cho `/api/reputation` hoặc nhóm `/api/*`; kiểm tra log Vercel khi dịch vụ trả 429/5xx.
 
 ## Supabase
 
@@ -62,3 +70,4 @@ Lệnh dev dùng Vercel CLI. Thêm `CRON_SECRET` vào biến môi trường loca
 - Dashboard cần tài khoản Supabase Auth có email nằm trong `ADMIN_EMAILS`.
 - Báo cáo chỉ được công khai sau khi quản trị viên xác minh với nguồn HTTPS đáng tin cậy.
 - Kết quả “chưa có dữ liệu” không có nghĩa website an toàn.
+- Điểm quy tắc 0–100 là tổng tín hiệu minh bạch, không phải xác suất lừa đảo. Ngưỡng: 0–24 ít dấu hiệu được phát hiện; 25–59 cần kiểm tra thêm; 60–100 nhiều dấu hiệu đáng ngờ. Kết quả Safe Browsing không khớp không làm giảm điểm.
