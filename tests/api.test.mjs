@@ -137,6 +137,8 @@ test("AI analysis accepts only hostname and signal codes and returns verified so
   assert.equal(requests[0].url, "https://generativelanguage.googleapis.com/v1beta/models/test-model:generateContent");
   assert.equal(requests[0].init.headers["x-goog-api-key"], "test-key");
   assert.equal("temperature" in requests[0].body.generationConfig, false);
+  assert.equal("additionalProperties" in requests[0].body.generationConfig.responseSchema, false);
+  assert.deepEqual(requests[0].body.generationConfig.responseSchema.required, ["summary", "evidence", "nextSteps", "limitations"]);
 });
 
 test("AI analysis validates its small allowlisted payload and requires server configuration", async () => {

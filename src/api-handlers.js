@@ -78,7 +78,7 @@ async function getAdmin(request, makePublicClient = publicSupabase, isAllowedAdm
 }
 
 const AI_OUTPUT_SCHEMA = {
-  type: "object", additionalProperties: false,
+  type: "object",
   properties: {
     summary: { type: "string" },
     evidence: { type: "array", items: { type: "string" } },
