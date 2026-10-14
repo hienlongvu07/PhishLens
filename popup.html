@@ -19,21 +19,13 @@
         <div class="score-track" role="progressbar" aria-label="Điểm rủi ro theo quy tắc" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="score-fill"></span></div>
         <p>Điểm rủi ro không phải xác suất lừa đảo; điểm thấp không đồng nghĩa an toàn.</p>
       </div>
-      <section id="reputation-area" class="reputation-area" aria-label="Đối chiếu Google Safe Browsing">
-        <div class="reputation-heading"><b>Đối chiếu nguồn ngoài</b><a href="https://developers.google.com/safe-browsing" target="_blank" rel="noopener noreferrer">Google Safe Browsing ↗</a></div>
-        <p id="reputation-status" class="reputation-status" role="status" aria-live="polite">Tra cứu nguồn ngoài khi bạn đồng ý.</p>
-        <p class="reputation-disclosure">Gửi giao thức, tên miền, cổng và đường dẫn qua PhishLens tới Google; bỏ thông tin đăng nhập, query, fragment. Dùng phi thương mại.</p>
-        <div id="reputation-consent-actions" class="reputation-actions hidden">
-          <button id="allow-reputation" class="mini-button">Đồng ý và bật tự tra cứu</button>
-          <button id="decline-reputation" class="mini-secondary">Chỉ dùng quy tắc</button>
+      <section id="manual-check-area" class="reputation-area" aria-label="Kiểm tra thủ công tại nguồn độc lập">
+        <div class="reputation-heading"><b>Muốn đối chiếu thêm?</b></div>
+        <p class="reputation-status">PhishLens không gửi URL tới các dịch vụ này. Mở công cụ và tự nhập tên miền để xem kết quả từ nguồn khác.</p>
+        <div class="reputation-actions">
+          <a class="mini-button" href="https://scam.vn/check-website" target="_blank" rel="noopener noreferrer">Kiểm tra trên Scam.vn ↗</a>
+          <a class="mini-secondary" href="https://www.scamadviser.com/check-website" target="_blank" rel="noopener noreferrer">Kiểm tra trên ScamAdviser ↗</a>
         </div>
-        <div id="reputation-optout-actions" class="reputation-actions hidden">
-          <button id="enable-reputation" class="mini-button">Bật tra cứu nguồn ngoài</button>
-        </div>
-        <div id="reputation-enabled-actions" class="reputation-actions hidden">
-          <button id="disable-reputation" class="mini-secondary">Tắt tự tra cứu</button>
-        </div>
-        <div id="reputation-result" class="reputation-result hidden"></div>
       </section>
     </section>
     <nav class="tabs" aria-label="Chi tiết phân tích"><button class="tab active" data-panel="signals">Dấu hiệu <span id="finding-count">0</span></button><button class="tab" data-panel="url-parts">Cấu trúc URL</button><button class="tab" data-panel="guide">Cẩm nang</button></nav>

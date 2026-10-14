@@ -62,28 +62,6 @@ function renderScore(result) {
   breakdown.append(title, list); breakdown.classList.remove("hidden");
 }
 
-function supportedWebUrl(value) {
-  try { const url = new URL(value); return ["http:", "https:"].includes(url.protocol) && Boolean(url.hostname); }
-  catch { return false; }
-}
-
-function storageGet(key) {
-  return new Promise((resolve) => chrome.storage.local.get(key, (data) => resolve(data[key])));
-}
-function storageSet(data) { return new Promise((resolve) => chrome.storage.local.set(data, resolve)); }
-
-async function sha256(value) {
-  const bytes = new TextEncoder().encode(value);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
-function urlForReputation(value) {
-  const url = new URL(value);
-  url.username = ""; url.password = ""; url.search = ""; url.hash = "";
-  return url.toString();
-}
-
 async function readAiResponse(response) {
   const contentType = response.headers.get("content-type") || "không có Content-Type";
   const text = await response.text();
@@ -104,7 +82,7 @@ async function readAiResponse(response) {
       GEMINI_RATE_LIMITED: "Gemini đang giới hạn yêu cầu. Hãy thử lại sau.",
       GEMINI_AUTH_FAILED: "Gemini từ chối API key. Kiểm tra cấu hình trên Vercel.",
       GEMINI_MODEL_NOT_FOUND: "Không tìm thấy model Gemini đã cấu hình.",
-      GEMINI_REQUEST_INVALID: "Gemini từ chối cấu hình yêu cầu. Kiểm tra model và cập nhật API trên Vercel.",
+      GEMINI_REQUEST_INVALID: "Gemini từ chối yêu cầu. Mở chi tiết kỹ thuật để xem lý do.",
       AI_TIMEOUT: "Gemini phản hồi quá thời gian chờ.",
       AI_INVALID_OUTPUT: "Gemini trả về kết quả không đọc được. Hãy thử lại.",
       AI_SERVICE_ERROR: "Dịch vụ AI đang gặp lỗi. Kết quả kiểm tra cục bộ vẫn còn."
@@ -115,7 +93,7 @@ async function readAiResponse(response) {
         : response.status === 503 ? "Dịch vụ AI chưa sẵn sàng. Kiểm tra cấu hình Vercel."
           : "Chưa thể phân tích bằng AI. Kết quả kiểm tra cục bộ vẫn còn.";
     throw Object.assign(new Error(messages[code] || fallback), {
-      technical: `HTTP ${response.status}${code ? `; ${code}` : ""}${data.error ? `; ${String(data.error).slice(0, 180)}` : ""}`
+      technical: `HTTP ${response.status}${code ? `; ${code}` : ""}${data.providerStatus ? `; Gemini ${String(data.providerStatus).slice(0, 80)}` : ""}${data.providerMessage ? `; ${String(data.providerMessage).slice(0, 240)}` : ""}${data.error ? `; ${String(data.error).slice(0, 120)}` : ""}`
     });
   }
   if (!data?.ai || typeof data.ai.summary !== "string" || !Array.isArray(data.ai.evidence) || !Array.isArray(data.ai.nextSteps)) {
@@ -130,84 +108,6 @@ function clearAiError() {
   $("#ai-error-details").classList.add("hidden");
   $("#ai-error-details").open = false;
   $("#ai-error-technical").textContent = "";
-}
-
-function showReputationResult(data, fromCache = false) {
-  const target = $("#reputation-result"); target.replaceChildren(); target.classList.remove("hidden");
-  const title = document.createElement("b");
-  const text = document.createElement("p");
-  if (data.status === "match") {
-    title.textContent = "Có kết quả khớp trong Google Safe Browsing";
-    text.textContent = `Nguồn ghi nhận loại đe dọa: ${(data.threatTypes || []).join(", ") || "không nêu loại cụ thể"}. Điểm rủi ro được nâng tối thiểu lên 80/100.`;
-    currentAnalysis.riskScore = Math.max(currentAnalysis.riskScore, 80);
-    currentAnalysis.band = "high";
-    currentAnalysis.level = "Nhiều dấu hiệu đáng ngờ";
-    $("#risk-score-card").dataset.band = "high";
-    $("#risk-score").textContent = String(currentAnalysis.riskScore);
-    $(".score-track").setAttribute("aria-valuenow", String(currentAnalysis.riskScore));
-    $("#score-fill").style.width = `${currentAnalysis.riskScore}%`;
-    $("#level").textContent = currentAnalysis.level;
-    $("#level").className = "level risk";
-    $("#no-findings").classList.add("hidden");
-    currentAnalysis.reputationMatched = true;
-    const breakdown = $("#score-breakdown");
-    const row = document.createElement("li"); row.className = "external-score-note";
-    const label = document.createElement("span"); label.textContent = "Khớp cảnh báo Google Safe Browsing";
-    const points = document.createElement("b"); points.textContent = "điểm tối thiểu 80";
-    row.append(label, points);
-    const list = breakdown.querySelector("ul");
-    if (list) list.append(row);
-    else {
-      const heading = document.createElement("b"); heading.textContent = "Đối chiếu nguồn ngoài";
-      const newList = document.createElement("ul"); newList.append(row); breakdown.replaceChildren(heading, newList); breakdown.classList.remove("hidden");
-    }
-  } else {
-    title.textContent = "Không tìm thấy kết quả khớp trong lần tra cứu này";
-    text.textContent = "Điều này không chứng minh website an toàn và không làm giảm điểm quy tắc.";
-  }
-  const source = document.createElement("p"); source.className = "reputation-source";
-  source.textContent = `Nguồn: Google Safe Browsing${fromCache ? " · kết quả lưu tạm theo thời hạn của Google" : ""}.`;
-  target.append(title, text, source);
-  $("#reputation-status").textContent = data.status === "match" ? "Đã tra cứu · có kết quả khớp." : "Đã tra cứu · không có kết quả khớp.";
-}
-
-async function lookupReputation() {
-  const status = $("#reputation-status");
-  const resultBox = $("#reputation-result");
-  resultBox.classList.add("hidden");
-  status.textContent = "Đang tra cứu URL đã chuẩn hóa với Google Safe Browsing…";
-  try {
-    const normalized = urlForReputation(currentUrl);
-    const key = `safeBrowsing:${await sha256(normalized)}`;
-    const cached = await new Promise((resolve) => chrome.storage.session.get(key, (data) => resolve(data[key])));
-    if (cached && cached.expiresAt > Date.now()) { showReputationResult(cached.data, true); return; }
-    const response = await fetch(`${API_BASE}/api/reputation`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: normalized }), credentials: "omit", cache: "no-store", redirect: "error",
-      signal: AbortSignal.timeout(10000)
-    });
-    const data = await response.json();
-    if (!response.ok || !["match", "no_match"].includes(data.status) || !Number.isFinite(data.cacheDurationSeconds)) throw new Error(data.error || `HTTP ${response.status}`);
-    await new Promise((resolve) => chrome.storage.session.set({ [key]: { data, expiresAt: Date.now() + data.cacheDurationSeconds * 1000 } }, resolve));
-    showReputationResult(data);
-  } catch (error) {
-    status.textContent = `Chưa đối chiếu được với Google Safe Browsing (${error.message}). Điểm cục bộ vẫn được giữ nguyên; lỗi tra cứu không có nghĩa website an toàn.`;
-  }
-}
-
-async function updateReputationConsent() {
-  const supported = supportedWebUrl(currentUrl);
-  const choice = await storageGet("safeBrowsingConsent");
-  $("#reputation-area").classList.toggle("unsupported", !supported);
-  $("#reputation-consent-actions").classList.toggle("hidden", !supported || choice !== undefined);
-  $("#reputation-optout-actions").classList.toggle("hidden", !supported || choice !== false);
-  $("#reputation-enabled-actions").classList.toggle("hidden", !supported || choice !== true);
-  if (!supported) {
-    $("#reputation-status").textContent = "Không thể tra cứu trang nội bộ của Chrome/Edge hoặc URL không phải HTTP(S). Hãy mở một website để kiểm tra.";
-    return;
-  }
-  if (choice === true) await lookupReputation();
-  else if (choice === false) $("#reputation-status").textContent = "Tra cứu nguồn ngoài đang tắt.";
 }
 
 async function init() {
@@ -230,13 +130,7 @@ async function init() {
     ? "Chỉ gửi hostname và dấu hiệu tới PhishLens sau khi bạn xác nhận."
     : "AI chỉ hoạt động trên trang HTTP(S). Hãy mở một website rồi bấm biểu tượng PhishLens; Chrome/Edge không cho extension đọc trang hệ thống.";
   $("#report").textContent = "Gửi báo cáo đến website PhishLens";
-  await updateReputationConsent();
 }
-
-$("#allow-reputation").addEventListener("click", async () => { await storageSet({ safeBrowsingConsent: true }); await updateReputationConsent(); });
-$("#decline-reputation").addEventListener("click", async () => { await storageSet({ safeBrowsingConsent: false }); await updateReputationConsent(); });
-$("#enable-reputation").addEventListener("click", async () => { await storageSet({ safeBrowsingConsent: true }); await updateReputationConsent(); });
-$("#disable-reputation").addEventListener("click", async () => { await storageSet({ safeBrowsingConsent: false }); $("#reputation-result").classList.add("hidden"); await updateReputationConsent(); });
 
 document.querySelectorAll(".tab").forEach((button) => button.addEventListener("click", () => {
   document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab === button));

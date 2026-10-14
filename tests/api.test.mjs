@@ -164,48 +164,14 @@ test("AI analysis returns useful machine-readable errors for malformed output, p
   assert.equal((await limitedResponse.json()).code, "GEMINI_RATE_LIMITED");
   const denied = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({}, { status: 403 }) });
   assert.equal((await (await denied.analyze(post("https://phishlens.test/api/analyze", body))).json()).code, "GEMINI_AUTH_FAILED");
-  const rejected = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({}, { status: 400 }) });
-  assert.equal((await (await rejected.analyze(post("https://phishlens.test/api/analyze", body))).json()).code, "GEMINI_REQUEST_INVALID");
+  const rejected = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ error: { status: "INVALID_ARGUMENT", message: "Unsupported generation setting." } }, { status: 400 }) });
+  const rejectedData = await (await rejected.analyze(post("https://phishlens.test/api/analyze", body))).json();
+  assert.equal(rejectedData.code, "GEMINI_REQUEST_INVALID");
+  assert.equal(rejectedData.providerStatus, "INVALID_ARGUMENT");
+  assert.match(rejectedData.providerMessage, /Unsupported generation setting/);
   const timeout = createApiHandlers({ ...baseOptions, fetchImpl: async () => { throw Object.assign(new Error("timeout"), { name: "TimeoutError" }); } });
   const timeoutResponse = await timeout.analyze(post("https://phishlens.test/api/analyze", body));
   assert.equal(timeoutResponse.status, 504);
   assert.equal((await timeoutResponse.json()).code, "AI_TIMEOUT");
 });
 
-test("Safe Browsing strips credentials, query and fragment before forwarding URL and reports a match", async () => {
-  const requests = [];
-  const handlers = createApiHandlers({
-    safeBrowsingApiKey: () => "safe-key",
-    fetchImpl: async (url, init) => {
-      requests.push({ url: new URL(url), init });
-      return Response.json({ threats: [{ url: "https://example.test/private/path", threatTypes: ["SOCIAL_ENGINEERING"] }], cacheDuration: "30s" });
-    }
-  });
-  const response = await handlers.reputation(post("https://phishlens.test/api/reputation", { url: "https://user:pass@example.test/private/path?session=secret#fragment" }));
-  const data = await response.json();
-  assert.equal(response.status, 200);
-  assert.equal(data.status, "match");
-  assert.deepEqual(data.threatTypes, ["SOCIAL_ENGINEERING"]);
-  assert.equal(requests[0].url.searchParams.get("urls[]"), "https://example.test/private/path");
-  assert.equal(requests[0].url.searchParams.get("key"), "safe-key");
-  assert.equal(requests[0].init.method, "GET");
-});
-
-test("Safe Browsing no-match is not a risk reduction and provider errors stay distinct", async () => {
-  const options = { safeBrowsingApiKey: () => "safe-key", fetchImpl: async () => Response.json({ threats: [], cacheDuration: "60s" }) };
-  const handlers = createApiHandlers(options);
-  const result = await (await handlers.reputation(post("https://phishlens.test/api/reputation", { url: "http://example.test/a?q=1#b" }))).json();
-  assert.equal(result.status, "no_match");
-  assert.equal(result.cacheDurationSeconds, 60);
-  const broken = createApiHandlers({ ...options, fetchImpl: async () => Response.json({}, { status: 429 }) });
-  assert.equal((await broken.reputation(post("https://phishlens.test/api/reputation", { url: "https://example.test/" }))).status, 503);
-  const timeout = createApiHandlers({ ...options, fetchImpl: async () => { throw Object.assign(new Error("timeout"), { name: "TimeoutError" }); } });
-  assert.equal((await timeout.reputation(post("https://phishlens.test/api/reputation", { url: "https://example.test/" }))).status, 504);
-});
-
-test("Safe Browsing rejects invalid inputs and requires a server-only API key", async () => {
-  const handlers = createApiHandlers({ safeBrowsingApiKey: () => "" });
-  assert.equal((await handlers.reputation(post("https://phishlens.test/api/reputation", { url: "javascript:alert(1)" }))).status, 400);
-  assert.equal((await handlers.reputation(post("https://phishlens.test/api/reputation", { url: "https://example.test/", hostname: "extra-field.test" }))).status, 400);
-  assert.equal((await handlers.reputation(post("https://phishlens.test/api/reputation", { url: "https://example.test/" }))).status, 503);
-});

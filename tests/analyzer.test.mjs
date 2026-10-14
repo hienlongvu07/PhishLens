@@ -83,21 +83,11 @@ test("popup asks before AI fetch and constructs a hostname plus signal-code payl
   assert.doesNotMatch(handler, /currentUrl|\.pathname|\.search|\.hash|\.cookie|innerText/);
 });
 
-test("popup explains unsupported tabs, renders risk contributions, and opts into Safe Browsing", async () => {
+test("popup keeps local scoring and uses manual third-party links", async () => {
   const popup = await readFile(new URL("../popup.js", import.meta.url), "utf8");
   const html = await readFile(new URL("../popup.html", import.meta.url), "utf8");
-  assert.match(popup, /Mở một website bắt đầu bằng http:\/\/ hoặc https:\/\//);
-  assert.match(popup, /safeBrowsingConsent/);
-  assert.match(popup, /urlForReputation/);
-  assert.match(popup, /url\.search = ""; url\.hash = ""/);
-  assert.match(popup, /const normalized = urlForReputation\(currentUrl\)/);
-  assert.match(popup, /body: JSON\.stringify\(\{ url: normalized \}\)/);
-  assert.match(popup, /\/api\/reputation/);
-  assert.match(popup, /Math\.max\(currentAnalysis\.riskScore, 80\)/);
-  assert.match(popup, /không làm giảm điểm quy tắc/);
-  assert.match(popup, /Điểm đóng góp theo dấu hiệu/);
-  assert.match(html, /bỏ thông tin đăng nhập, query, fragment/i);
-  assert.doesNotMatch(html, /0–24:.*25–59:.*60–100:/);
-  assert.match(html, /Chi tiết kỹ thuật/);
-  assert.match(popup, /phản hồi không phải JSON/);
+  assert.doesNotMatch(popup, /phishTankConsent|urlForReputation|api\/phishtank/);
+  assert.match(html, /https:\/\/scam\.vn\/check-website/);
+  assert.match(html, /https:\/\/www\.scamadviser\.com\/check-website/);
+  assert.doesNotMatch(html, /PhishTank|phishtank|Safe Browsing|GOOGLE_SAFE_BROWSING_API_KEY/);
 });

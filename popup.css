@@ -105,6 +105,7 @@ main { animation: popup-arrive 220ms ease-out both; }
 .reputation-area { margin-top: 10px; padding: 9px; border: 1px solid #d7e5e2; border-radius: 9px; background: #f5faf8; }
 .reputation-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 10px; }
 .reputation-heading a { color: #17654f; font-size: 9px; font-weight: 700; }
+.reputation-actions a { display: inline-block; text-decoration: none; }
 .reputation-status { margin: 6px 0 0; color: #354b5f; font-size: 10px; line-height: 1.4; }
 .reputation-disclosure { margin: 5px 0; color: #68788d; font-size: 9px; line-height: 1.4; }
 .reputation-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }

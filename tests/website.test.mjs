@@ -20,12 +20,10 @@ test("HIBP link is official, attributed, and leaves email entry to the user", ()
   assert.match(privacy, /không nhận kết quả và không lưu email/);
 });
 
-test("privacy policy discloses optional Safe Browsing lookup and local consent/cache", () => {
-  assert.match(privacy, /yêu cầu bạn bấm đồng ý trước khi tra cứu/);
-  assert.match(privacy, /query và fragment bị loại bỏ/);
-  assert.match(privacy, /mã băm SHA-256/);
-  assert.match(privacy, /không có URL tra cứu nào được lưu vào Supabase/i);
-  assert.match(privacy, /safe-browsing\/terms/);
+test("privacy policy explains manual third-party checks", () => {
+  assert.match(privacy, /scam\.vn\/check-website/);
+  assert.match(privacy, /scamadviser\.com\/check-website/);
+  assert.doesNotMatch(privacy, /PhishTank|phishtank/);
 });
 
 test("URL lookup and internal report confirmation remain on the homepage", () => {
