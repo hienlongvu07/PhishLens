@@ -114,3 +114,45 @@ test("admin can list, paginate and change report status through the protected RP
   const badUpdate = await handlers.adminUpdateReport(badRequest, { params: { id: report.id } });
   assert.equal(badUpdate.status, 400);
 });
+
+test("AI analysis accepts only hostname and signal codes and returns verified source separately", async () => {
+  const requests = [];
+  const aiResult = { summary: "Có dấu hiệu cần xem xét.", evidence: ["Tên miền dùng HTTP."], nextSteps: ["Tự mở website chính thức."], limitations: "Không xác minh toàn bộ website." };
+  const handlers = createApiHandlers({
+    makeAdminClient: () => ({ from: () => ({ select() { return this; }, eq(_field, host) { this.host = host; return this; }, async maybeSingle() { return { data: this.host === "login-verify-example.test" ? { hostname: this.host, type: "demo", summary: "Cảnh báo demo đã xác minh.", source_url: "https://example.org/source", status: "Đã xác minh", source: "PhishLens", updated_at: "2026-10-14", is_demo: true, url: "https://must-not-send.test/?secret=1" } : null, error: null }; } }) }),
+    geminiApiKey: () => "test-key", geminiModel: () => "test-model",
+    fetchImpl: async (url, init) => { requests.push({ url, init, body: JSON.parse(init.body) }); return Response.json({ candidates: [{ content: { parts: [{ text: JSON.stringify(aiResult) }] } }] }); }
+  });
+  const response = await handlers.analyze(post("https://phishlens.test/api/analyze", { hostname: "login-verify-example.test", signalCodes: ["http", "sample_blocklist"] }));
+  const data = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(data.community.status, "verified");
+  assert.equal(data.community.demo, true);
+  assert.deepEqual(data.ai, aiResult);
+  const modelInput = JSON.parse(requests[0].body.contents[0].parts[0].text);
+  assert.deepEqual(modelInput.signalCodes, ["http", "sample_blocklist"]);
+  assert.equal(modelInput.hostname, "login-verify-example.test");
+  assert.equal(modelInput.signalDetails[0].code, "http");
+  assert.equal(JSON.stringify(requests[0].body).includes("must-not-send"), false);
+  assert.equal(requests[0].url, "https://generativelanguage.googleapis.com/v1beta/models/test-model:generateContent");
+  assert.equal(requests[0].init.headers["x-goog-api-key"], "test-key");
+});
+
+test("AI analysis validates its small allowlisted payload and requires server configuration", async () => {
+  const handlers = createApiHandlers({ geminiApiKey: () => "" });
+  assert.equal((await handlers.analyze(post("https://phishlens.test/api/analyze", { hostname: "https://x.test/a?secret=1", signalCodes: [] }))).status, 400);
+  assert.equal((await handlers.analyze(post("https://phishlens.test/api/analyze", { hostname: "x.test", signalCodes: ["unknown"] }))).status, 400);
+  assert.equal((await handlers.analyze(post("https://phishlens.test/api/analyze", { hostname: "x.test", signalCodes: [], url: "https://secret.test/" }))).status, 400);
+  assert.equal((await handlers.analyze(post("https://phishlens.test/api/analyze", { hostname: "x.test", signalCodes: [] }))).status, 503);
+});
+
+test("AI analysis rejects malformed model output and handles upstream failure without altering local status", async () => {
+  const baseOptions = { geminiApiKey: () => "test-key", makeAdminClient: () => ({ from: () => ({ select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: null, error: null }; } }) }) };
+  const body = { hostname: "example.test", signalCodes: [] };
+  const malformed = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ candidates: [{ content: { parts: [{ text: "not-json" }] } }] }) });
+  assert.equal((await malformed.analyze(post("https://phishlens.test/api/analyze", body))).status, 502);
+  const failed = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ error: "upstream" }, { status: 500 }) });
+  assert.equal((await failed.analyze(post("https://phishlens.test/api/analyze", body))).status, 502);
+  const timeout = createApiHandlers({ ...baseOptions, fetchImpl: async () => { throw Object.assign(new Error("timeout"), { name: "TimeoutError" }); } });
+  assert.equal((await timeout.analyze(post("https://phishlens.test/api/analyze", body))).status, 504);
+});

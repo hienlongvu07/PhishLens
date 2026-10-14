@@ -2,6 +2,7 @@
 export const SAMPLE_BRANDS = ["google", "facebook", "microsoft", "paypal", "amazon"];
 export const SHORTENER_DOMAINS = ["bit.ly", "tinyurl.com", "t.co", "goo.gl", "is.gd"];
 export const SAMPLE_SUSPICIOUS_DOMAINS = ["login-verify-example.test", "secure-account-demo.test"];
+export const AI_SIGNAL_CODES = Object.freeze(["http", "many_subdomains", "long_hostname", "credentials_at", "unicode_or_punycode", "encoded_path", "hyphenated_hostname", "shortener", "lookalike_brand", "sample_blocklist", "ip_address", "suspicious_port", "suspicious_keyword"]);
 
 const CONFUSABLES = /[\u0430\u0435\u043e\u0440\u0441\u0445\u0456\u04cf]/i;
 
@@ -64,7 +65,25 @@ export function analyzeUrl(input) {
   const brand = similarBrand(host);
   if (brand) risk(`Tên miền gần giống thương hiệu mẫu “${brand}”, nhưng đây không phải xác nhận về tên miền chính thức.`);
   if (SAMPLE_SUSPICIOUS_DOMAINS.includes(host)) risk("Tên miền khớp danh sách đáng ngờ mẫu của dự án; đây chỉ là dữ liệu demo nhỏ.");
+  if (/^(?:\d{1,3}\.){3}\d{1,3}$/.test(host) || host.includes(":")) risk("Địa chỉ dùng số thay cho tên miền; khó đối chiếu với tên website chính thức.");
+  if (url.port && !["80", "443"].includes(url.port)) caution("URL dùng cổng kết nối không thường gặp; hãy xác minh đích đến qua kênh chính thức.");
+  if (/(?:login|verify|secure|account|wallet|payment|bonus|claim|job|invest|profit)/i.test(`${host}${url.pathname}`)) caution("Tên miền hoặc đường dẫn có từ khóa thường xuất hiện trong lời mời đăng nhập, nhận thưởng hoặc đầu tư; từ khóa riêng lẻ không chứng minh là lừa đảo.");
 
+  const signals = [];
+  const addSignal = (code, match) => { if (match) signals.push({ code }); };
+  addSignal("http", url.protocol === "http:");
+  addSignal("many_subdomains", labels.length >= 5);
+  addSignal("long_hostname", host.length > 50);
+  addSignal("credentials_at", Boolean(url.username || url.password) || input.includes("@"));
+  addSignal("unicode_or_punycode", host.includes("xn--") || CONFUSABLES.test(unicodeHost));
+  addSignal("encoded_path", /%[0-9a-f]{2}/i.test(url.pathname + url.search));
+  addSignal("hyphenated_hostname", host.includes("-"));
+  addSignal("shortener", SHORTENER_DOMAINS.includes(host));
+  addSignal("lookalike_brand", Boolean(similarBrand(host)));
+  addSignal("sample_blocklist", SAMPLE_SUSPICIOUS_DOMAINS.includes(host));
+  addSignal("ip_address", /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host) || host.includes(":"));
+  addSignal("suspicious_port", Boolean(url.port && !["80", "443"].includes(url.port)));
+  addSignal("suspicious_keyword", /(?:login|verify|secure|account|wallet|payment|bonus|claim|job|invest|profit)/i.test(`${host}${url.pathname}`));
   const level = suspicious ? "Có dấu hiệu đáng ngờ" : findings.length ? "Cần kiểm tra thêm" : "Chưa thấy dấu hiệu rõ";
   const advice = findings.length ? [
     "Chưa xác minh? Không nhập mật khẩu, mã OTP hoặc thông tin thanh toán.",
@@ -74,7 +93,7 @@ export function analyzeUrl(input) {
   ] : [];
 
   return {
-    valid: true, hostname: displayHost, level, findings, advice,
+    valid: true, hostname: displayHost, canonicalHostname: host, signals, level, findings, advice,
     parts: {
       protocol: url.protocol.replace(":", "").toUpperCase(), host: displayHost,
       port: url.port || "Mặc định", path: url.pathname || "/",

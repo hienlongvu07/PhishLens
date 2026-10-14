@@ -2,14 +2,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 300">
  <style>
   @keyframes shield-glow { 0%,100% { opacity: .92; } 50% { opacity: 1; } }
+  @keyframes check-draw { 0%,12% { stroke-dashoffset: 38; } 32%,78% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 38; } }
   @keyframes warning-pulse { 0%,100% { transform: scale(1); opacity: .82; } 50% { transform: scale(1.08); opacity: 1; } }
   .shield { animation: shield-glow 4s ease-in-out infinite; }
+  .shield-check { stroke-dasharray: 38; animation: check-draw 5.8s ease-in-out infinite; }
   .warning { transform-box: fill-box; transform-origin: center; animation: warning-pulse 3.6s .5s ease-in-out infinite; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
  </style>
  <rect width="560" height="300" rx="20" fill="#e7eaf0"/><circle cx="462" cy="74" r="65" fill="#d6dce7"/>
  <rect x="187" y="23" width="151" height="254" rx="24" fill="#263d4e"/><rect x="197" y="38" width="131" height="224" rx="17" fill="#fffdf7"/>
- <rect x="213" y="62" width="99" height="72" rx="12" fill="#e1f0e8"/><path class="shield" d="M263 77l24 9v19c0 12-12 20-24 25-12-5-24-13-24-25V86z" fill="#4d9b7d"/><path d="M252 101l8 8 15-17" fill="none" stroke="#fffdf7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+ <rect x="213" y="62" width="99" height="72" rx="12" fill="#e1f0e8"/><path class="shield" d="M263 77l24 9v19c0 12-12 20-24 25-12-5-24-13-24-25V86z" fill="#4d9b7d"/><path class="shield-check" d="M252 101l8 8 15-17" fill="none" stroke="#fffdf7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
  <path d="M219 152h88M219 169h73" stroke="#9aabb1" stroke-width="7" stroke-linecap="round"/><rect x="214" y="191" width="98" height="42" rx="10" fill="#f5d795"/><path d="M231 212h65" stroke="#92754a" stroke-width="7" stroke-linecap="round"/>
  <path class="warning" d="M119 83l17-34 18 34h-35z" fill="#d47758"/><path d="M136 65v8M136 79v1" stroke="#fffdf7" stroke-width="4" stroke-linecap="round"/>
  <path d="M376 117h74M391 137h53" stroke="#718294" stroke-width="8" stroke-linecap="round"/>

@@ -3,6 +3,7 @@ import { analyzeUrl } from "./src/analyzer.js";
 const $ = (selector) => document.querySelector(selector);
 const API_BASE = chrome.runtime.getManifest().host_permissions[0].replace(/\/\*$/, "");
 let currentUrl = "";
+let currentAnalysis = null;
 const miniGuide = [
   ["Ngân hàng / tổ chức", "Tự mở ứng dụng hoặc gọi kênh chính thức; cảnh giác với tin khóa tài khoản, hoàn tiền."],
   ["Mật khẩu / OTP", "Không đọc hoặc gửi OTP cho bất kỳ ai để “xác minh”."],
@@ -36,6 +37,7 @@ async function init() {
   const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   currentUrl = tab?.url || "";
   const result = analyzeUrl(currentUrl);
+  currentAnalysis = result;
   $("#domain").textContent = currentUrl || result.hostname;
   $("#level").textContent = result.level;
   $("#level").className = `level ${result.level === "Có dấu hiệu đáng ngờ" ? "risk" : result.level === "Cần kiểm tra thêm" ? "caution" : "clear"}`;
@@ -45,6 +47,7 @@ async function init() {
   $("#no-findings").classList.toggle("hidden", result.findings.length > 0 || !result.valid);
   renderParts(result.parts);
   $("#report").disabled = !result.valid;
+  $("#ai-analyze").disabled = !result.valid;
   $("#report").textContent = "Gửi báo cáo đến website PhishLens";
 }
 
@@ -66,6 +69,63 @@ $("#settings").addEventListener("click", () => chrome.tabs.create({ url: API_BAS
 $("#guide-link").href = `${API_BASE}/#cam-nang`;
 $("#privacy-link").href = `${API_BASE}/privacy.html`;
 
+$("#ai-analyze").addEventListener("click", async () => {
+  if (!currentAnalysis?.valid) return;
+  const hostname = currentAnalysis.canonicalHostname;
+  const signalCodes = [...new Set(currentAnalysis.signals.map(({ code }) => code))];
+  const approved = window.confirm(`GỬI PHÂN TÍCH TÙY CHỌN\n\nSẽ gửi tới PhishLens tại ${API_BASE}; máy chủ chuyển hostname và mã dấu hiệu tới Google Gemini để tạo lời giải thích.\n\nHostname: ${hostname}\nMã dấu hiệu: ${signalCodes.length ? signalCodes.join(", ") : "không có"}\n\nKhông gửi URL đầy đủ, đường dẫn, query, fragment, cookie, thông tin đăng nhập hoặc nội dung trang. Nếu PhishLens đang dùng Gemini API free tier, Google có thể dùng prompt và phản hồi để cải thiện sản phẩm. AI chỉ giải thích; trạng thái vẫn dựa trên quy tắc và cảnh báo đã xác minh. Tiếp tục?`);
+  if (!approved) return;
+
+  const button = $("#ai-analyze");
+  const status = $("#ai-status");
+  button.disabled = true;
+  button.textContent = "Đang phân tích…";
+  status.textContent = "Đang gửi hostname và mã dấu hiệu đã trích xuất.";
+  $("#ai-result").classList.add("hidden");
+  $("#community-result").classList.add("hidden");
+  try {
+    const response = await fetch(`${API_BASE}/api/analyze`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ hostname, signalCodes }),
+      credentials: "omit", cache: "no-store", redirect: "error"
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+    const community = $("#community-result");
+    if (data.community?.status === "verified") {
+      const label = document.createElement("b"); label.textContent = `Dữ liệu PhishLens · Đã xác minh${data.community.demo ? " (demo)" : ""}`;
+      const summary = document.createElement("p"); summary.textContent = data.community.summary;
+      community.replaceChildren(label, summary);
+      if (data.community.sourceUrl) {
+        const source = document.createElement("a"); source.href = data.community.sourceUrl; source.target = "_blank"; source.rel = "noopener noreferrer"; source.textContent = `Nguồn: ${data.community.source || "nguồn đã duyệt"}`;
+        community.append(source);
+      }
+      community.classList.remove("hidden");
+    }
+    const result = $("#ai-result");
+    result.replaceChildren();
+    const heading = document.createElement("b"); heading.textContent = "Giải thích AI";
+    const summary = document.createElement("p"); summary.textContent = data.ai.summary;
+    result.append(heading, summary);
+    for (const [title, values] of [["Bằng chứng được đưa vào", data.ai.evidence], ["Bạn có thể làm gì", data.ai.nextSteps]]) {
+      if (!values?.length) continue;
+      const label = document.createElement("b"); label.textContent = title;
+      const list = document.createElement("ul");
+      for (const value of values) { const item = document.createElement("li"); item.textContent = value; list.append(item); }
+      result.append(label, list);
+    }
+    const limits = document.createElement("p"); limits.className = "ai-limitation"; limits.textContent = `Giới hạn: ${data.ai.limitations} Trạng thái vẫn do quy tắc và dữ liệu PhishLens quyết định.`;
+    result.append(limits);
+    result.classList.remove("hidden");
+    status.textContent = "Đã nhận phần giải thích bổ sung. Đây không phải kết luận website an toàn hay lừa đảo.";
+    button.textContent = "Phân tích lại bằng AI";
+  } catch (error) {
+    status.textContent = `Chưa lấy được giải thích AI (${error.message}). Kết quả quy tắc trên thiết bị vẫn còn; bạn có thể thử lại.`;
+    button.textContent = "Thử lại phân tích AI";
+  } finally {
+    button.disabled = false;
+  }
+});
 $("#report").addEventListener("click", async () => {
   const type = $("#report-type").value;
   const approved = window.confirm(`XEM LẠI TRƯỚC KHI GỬI\n\nURL ĐẦY ĐỦ (gồm query và fragment):\n${currentUrl}\n\nLoại nghi ngờ: ${type}\nNơi nhận: ${API_BASE}\n\nQuery có thể chứa mã phiên hoặc thông tin riêng tư. Chỉ tiếp tục nếu bạn đã kiểm tra URL và muốn chia sẻ đầy đủ với nhóm PhishLens. Extension không gửi mật khẩu, OTP, cookie hay nội dung trang.`);

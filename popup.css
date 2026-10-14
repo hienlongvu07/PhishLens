@@ -70,3 +70,20 @@ main { animation: popup-arrive 220ms ease-out both; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; }
 }
+.ai-area { margin-top: 12px; padding: 11px; border: 1px solid #cfe7df; border-radius: 11px; background: linear-gradient(135deg,#f0fbf7,#fff9e9); }
+.ai-kicker { margin: 0 0 7px; color: #39705f; font-size: 9px; font-weight: 800; letter-spacing: .6px; }
+.ai-button { width: 100%; padding: 10px; border: 1px solid #a9d8c8; border-radius: 9px; background: #e5f7ef; color: #174e3e; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; transition: transform 150ms ease, background 150ms ease, box-shadow 150ms ease; }
+.ai-button:hover:not(:disabled) { transform: translateY(-1px); background: #d7f1e6; box-shadow: 0 4px 10px #174e3e18; }
+.ai-button:disabled { opacity: .55; cursor: not-allowed; }
+.ai-consent-note, .ai-status { margin: 5px 1px 0; color: #68788d; font-size: 9px; line-height: 1.4; }
+.ai-status:not(:empty) { color: #355a50; }
+.ai-result, .community-result { margin-top: 8px; padding: 9px; border-radius: 8px; background: #fff; color: #35455b; font-size: 10px; line-height: 1.45; }
+.ai-result p { margin: 5px 0; }
+.ai-result ul { margin: 4px 0 7px; padding-left: 18px; }
+.ai-result li { margin: 2px 0; }
+.ai-limitation { color: #67788d; }
+.community-result { border-left: 3px solid #d59e2b; }
+.community-result p { margin: 5px 0; }
+.community-result a { color: #17654f; font-weight: 700; text-decoration: underline; }
+.ai-button:focus-visible { outline: 3px solid #80cdb6; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .ai-button { transition-duration: .01ms; } }

@@ -4,6 +4,12 @@ PhishLens là dự án thử nghiệm cộng đồng gồm tiện ích Chrome/Ed
 
 > **Cần biết tải phần nào lên đâu?** Xem [Bản đồ triển khai](DEPLOYMENT.md): kết nối repository gốc với Vercel, chạy migration/cấu hình Auth trong Supabase, và tải ZIP extension lên Chrome Web Store. Website không được tải lên Supabase.
 
+## Phân tích AI tùy chọn
+
+Nút **Nhờ AI phân tích thêm** chỉ chạy sau xác nhận riêng. Extension gửi hostname chuẩn hóa và mã dấu hiệu; không gửi URL đầy đủ, đường dẫn, query, fragment hay nội dung trang. API tra cảnh báo đã xác minh phía server rồi mới gọi Gemini generateContent API. AI chỉ giải thích; mức cục bộ và trạng thái cảnh báo vẫn là nguồn quyết định. Xem [chính sách riêng tư](web/privacy.html) và [hướng dẫn triển khai](DEPLOYMENT.md) để cấu hình `GEMINI_API_KEY` (chỉ ở server) cùng `GEMINI_MODEL` trên Vercel.
+
+API mới: `POST /api/analyze` với `{ "hostname": "example.com", "signalCodes": ["http"] }`. Không gửi URL hoặc trường khác. Lời giải thích không được lưu vào Supabase. Với Gemini API free tier, Google có thể dùng prompt/phản hồi để cải thiện sản phẩm; xem điều khoản Google trước khi bật cho người dùng thật.
+
 ## Cấu trúc
 
 - `web/`: website công khai, cẩm nang, tra cứu, biểu mẫu gửi báo cáo, dashboard và chính sách riêng tư.

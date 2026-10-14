@@ -59,6 +59,39 @@ test("editorial home preserves accessibility and compact survey context", () => 
   assert.match(home, /Chưa có dữ liệu không có nghĩa website an toàn/);
 });
 
+test("extension spotlight has an honest store placeholder and balanced survey stats", () => {
+  assert.match(home, /<section class="extension-feature" aria-labelledby="extension-heading">/);
+  assert.match(home, /<button class="button extension-button is-upcoming" type="button" disabled aria-describedby="extension-release-status">Tải tiện ích/);
+  assert.match(home, /class="release-pill"><span aria-hidden="true">●<\/span> Sắp ra mắt<\/span>/);
+  assert.match(home, /Liên kết Chrome Web Store sẽ được cập nhật tại đây khi tiện ích được phát hành/);
+  assert.doesNotMatch(home, /class="button extension-button[^>]*href=/);
+  assert.match(home, /class="survey-number"><strong>94<\/strong><span class="survey-total">\/120<\/span>/);
+  assert.match(home, /class="survey-meter" aria-hidden="true"/);
+  assert.match(home, /class="survey-facts"><p><b>86<\/b><span>/);
+});
+
+test("new motion layers retain reduced-motion and scroll-reveal support", async () => {
+  const css = await readFile(new URL("../web/site.css", import.meta.url), "utf8");
+  assert.match(site, /\.extension-copy, \.extension-visual/);
+  assert.match(css, /@keyframes window-glint/);
+  assert.match(css, /@keyframes popup-hover/);
+  assert.match(css, /@keyframes meter-fill/);
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
+  assert.match(css, /\.browser-page::after[^}]*animation:\s*window-glint/);
+  assert.match(css, /\.extension-popup \{ animation:\s*none !important/);
+  assert.match(css, /\.survey-main \.survey-number strong[^}]*font-size:clamp\(64px/);
+});
+
+test("public landing-page text sizes are readable on desktop and mobile", async () => {
+  const css = await readFile(new URL("../web/site.css", import.meta.url), "utf8");
+  assert.match(css, /\.hero-intro\s*\{[^}]*font-size:18px/);
+  assert.match(css, /\.tool-copy[^}]*font-size:15px/);
+  assert.match(css, /\.story-text, \.story-turn span[^}]*font-size:15px/);
+  assert.match(css, /\.extension-points li[^}]*font-size:14px/);
+  assert.match(css, /@media\(max-width:760px\)[\s\S]*?\.hero-intro\s*\{\s*font-size:16px/);
+  assert.match(css, /@media\(max-width:420px\)[\s\S]*?\.hero-intro\s*\{\s*font-size:15px/);
+});
+
 test("editorial illustrations are local SVGs with layered motion and reduced-motion fallbacks", async () => {
   const assets = [
     "/images/hero-pause.svg",

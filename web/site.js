@@ -2,6 +2,21 @@ import { stories } from "./stories.js";
 
 const $ = (selector) => document.querySelector(selector);
 const types = ["Giả mạo ngân hàng/tổ chức", "Lừa lấy mật khẩu hoặc OTP", "Giả mạo cơ quan/dịch vụ công", "Tuyển dụng/việc làm giả", "Quà tặng/khuyến mãi", "Đầu tư/vay đáng ngờ", "Liên kết rút gọn/website/tệp lạ", "Khác"];
+const progressFill = document.querySelector(".page-progress span");
+if (progressFill) {
+  let progressQueued = false;
+  const updateProgress = () => {
+    const range = document.documentElement.scrollHeight - window.innerHeight;
+    progressFill.style.transform = `scaleX(${range > 0 ? Math.min(1, window.scrollY / range) : 1})`;
+    progressQueued = false;
+  };
+  window.addEventListener("scroll", () => {
+    if (progressQueued) return;
+    progressQueued = true;
+    window.requestAnimationFrame(updateProgress);
+  }, { passive: true });
+  updateProgress();
+}
 const storyRoot = document.querySelector("#story-grid");
 for (const [index, story] of stories.entries()) {
   const article = document.createElement("article"); article.className = `story-card story-${story.id}`;
@@ -26,7 +41,7 @@ for (const [index, story] of stories.entries()) {
 // and IntersectionObserver is available. Without it, the page stays fully visible.
 if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches && "IntersectionObserver" in window) {
   const revealTargets = document.querySelectorAll(
-    ".hero-copy, .hero-art-wrap, .hero-bottom, .tools-section .section-topline, .tool-card, .stories-heading, .story-card, .story-bottom-note, .why-section, .report-secondary"
+    ".hero-copy, .hero-art-wrap, .hero-bottom, .extension-copy, .extension-visual, .tools-section .section-topline, .tool-card, .stories-heading, .story-card, .story-bottom-note, .why-section, .report-secondary"
   );
   const revealObserver = new IntersectionObserver((entries, observer) => {
     for (const entry of entries) {
