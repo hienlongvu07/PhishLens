@@ -1,6 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="29" fill="#0b8178"/>
-  <circle cx="55" cy="53" r="29" fill="none" stroke="#ffffff" stroke-width="9"/>
-  <path d="m76 75 25 25" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="10"/>
-  <circle cx="55" cy="53" r="10" fill="#b8f2dd"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="lens" x1="24" y1="26" x2="151" y2="145" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#42C8C4"/>
+      <stop offset="1" stop-color="#087EAA"/>
+    </linearGradient>
+    <linearGradient id="handle" x1="133" y1="132" x2="184" y2="184" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#086D99"/>
+      <stop offset="1" stop-color="#103D66"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="53" y1="44" x2="112" y2="144" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4FE0B0"/>
+      <stop offset="1" stop-color="#12B99F"/>
+    </linearGradient>
+  </defs>
+  <path d="m130 130 48 48" stroke="url(#handle)" stroke-width="21" stroke-linecap="round"/>
+  <circle cx="84" cy="84" r="62" stroke="url(#lens)" stroke-width="15"/>
+  <path d="M39 52c9-10 20-17 33-20" stroke="#E8FFFA" stroke-width="4" stroke-linecap="round"/>
+  <path d="M84 39c-12 9-24 14-37 16v31c0 26 13 46 37 60 24-14 37-34 37-60V55c-13-2-25-7-37-16Z" fill="url(#shield)"/>
+  <path d="m63 87 14 14 28-30" stroke="#F7FFFC" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

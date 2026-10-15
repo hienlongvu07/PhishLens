@@ -3,7 +3,7 @@
 body { width: 390px; margin: 0; }
 main { padding: 16px; }
 header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-.brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: #123b5d; color: #79e0c3; font-size: 24px; }
+.brand-mark { width: 42px; height: 42px; display: block; object-fit: contain; flex: 0 0 auto; }
 h1 { margin: 0; font-size: 19px; letter-spacing: -.3px; }
 .tagline { margin: 2px 0 0; color: #64748b; font-size: 11px; }
 .score-card { padding: 14px; border: 1px solid #dce4ef; border-radius: 13px; background: radial-gradient(circle at 100% 0%, #e8f4f8, #fff 58%); }

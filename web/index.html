@@ -1,7 +1,7 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8"><link rel="icon" type="image/png" href="/images/phishlens-logo.png">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#123d3a">
   <meta name="description" content="PhishLens giúp bạn nhận ra chiêu trò lừa đảo qua những tình huống dễ hiểu, tra cứu tên miền và chọn bước xác minh an toàn.">
@@ -12,7 +12,7 @@
   <div class="page-progress" aria-hidden="true"><span></span></div>
   <a class="skip-link" href="#noi-dung">Bỏ qua điều hướng</a>
   <header class="topbar home-topbar">
-    <a class="logo" href="/" aria-label="PhishLens — Trang chủ"><span class="logo-icon" aria-hidden="true">◉</span> PhishLens</a>
+    <a class="logo" href="/" aria-label="PhishLens — Trang chủ"><img class="logo-icon" src="/images/phishlens-logo.png" alt=""> PhishLens</a>
     <nav aria-label="Điều hướng chính">
       <a href="#kiem-tra">Công cụ</a><a href="#chieu-tro">Cẩm nang</a><a href="/community.html">Cộng đồng</a><a href="#ve-chung-toi">Về dự án</a>
       <a class="nav-report" href="#bao-cao">Gửi báo cáo <span aria-hidden="true">↗</span></a>
@@ -54,9 +54,9 @@
         <div class="extension-visual" aria-label="Minh họa cửa sổ tiện ích PhishLens trên trình duyệt">
           <span class="extension-orbit extension-orbit-a" aria-hidden="true"></span><span class="extension-orbit extension-orbit-b" aria-hidden="true"></span>
           <div class="browser-mock" aria-hidden="true">
-            <div class="browser-chrome"><span></span><span></span><span></span><div class="browser-address"><b>⌕</b> shop-example.test/verify</div><span class="browser-extension-mark">◉</span></div>
+            <div class="browser-chrome"><span></span><span></span><span></span><div class="browser-address"><b>⌕</b> shop-example.test/verify</div><img class="browser-extension-mark" src="/images/phishlens-logo.png" alt=""></div>
             <div class="browser-page"><div class="browser-page-nav"><b>GÓC MUA SẮM</b><span>Ưu đãi hôm nay</span><span>Hỗ trợ</span></div><div class="browser-page-content"><span class="browser-tag">XÁC NHẬN TÀI KHOẢN</span><b>Ưu đãi chỉ còn<br>trong vài phút!</b><span class="browser-skeleton"></span><span class="browser-skeleton short"></span><span class="browser-cta">Tiếp tục ngay</span></div></div>
-            <div class="extension-popup"><div class="popup-brand"><span class="popup-logo">◉</span><b>PhishLens</b><span class="popup-menu">•••</span></div><div class="popup-domain"><small>ĐANG KIỂM TRA</small><b>shop-example.test</b></div><div class="popup-status"><span>!</span><b>Cần kiểm tra thêm</b></div><div class="popup-clue"><span>01</span><p><b>Địa chỉ thúc giục xác minh</b><small>Kiểm tra kỹ tên miền trước khi tiếp tục.</small></p></div><div class="popup-clue"><span>02</span><p><b>Chưa có cảnh báo cộng đồng</b><small>Điều này không đảm bảo trang đáng tin.</small></p></div><div class="popup-safe"><span>✓</span> Tự mở kênh chính thức để xác minh</div></div>
+            <div class="extension-popup"><div class="popup-brand"><img class="popup-logo" src="/images/phishlens-logo.png" alt=""><b>PhishLens</b><span class="popup-menu">•••</span></div><div class="popup-domain"><small>ĐANG KIỂM TRA</small><b>shop-example.test</b></div><div class="popup-status"><span>!</span><b>Cần kiểm tra thêm</b></div><div class="popup-clue"><span>01</span><p><b>Địa chỉ thúc giục xác minh</b><small>Kiểm tra kỹ tên miền trước khi tiếp tục.</small></p></div><div class="popup-clue"><span>02</span><p><b>Chưa có cảnh báo cộng đồng</b><small>Điều này không đảm bảo trang đáng tin.</small></p></div><div class="popup-safe"><span>✓</span> Tự mở kênh chính thức để xác minh</div></div>
             <span class="visual-chip chip-inspect">⌕ Giải thích dấu hiệu</span><span class="visual-chip chip-private">◈ Chỉ kiểm tra khi bạn bấm</span>
           </div>
         </div>
@@ -104,7 +104,7 @@
     <dialog id="report-confirm-dialog" class="confirm-dialog"><form method="dialog"><button class="dialog-close" aria-label="Đóng">×</button></form><p class="eyebrow">XÁC NHẬN CHIA SẺ</p><h2>Kiểm tra nội dung trước khi gửi</h2><p class="query-warning">URL đầy đủ, gồm query và fragment, sẽ được gửi đến nhóm. Query đôi khi chứa mã phiên hoặc dữ liệu riêng tư.</p><dl><dt>URL</dt><dd id="confirm-url"></dd><dt>Loại nghi ngờ</dt><dd id="confirm-type"></dd><dt>Mô tả</dt><dd id="confirm-description"></dd></dl><div class="confirm-actions"><button type="button" id="cancel-report" class="button ghost">Quay lại</button><button type="button" id="confirm-report" class="button primary">Gửi báo cáo</button></div></dialog>
   </main>
 
-  <footer class="site-footer"><a class="logo" href="/">◉ PhishLens</a><p>Gợi ý để kiểm tra kỹ hơn, không thay thế xác minh qua kênh chính thức.</p><a href="/community.html">Cộng đồng PhishLens</a><a href="/privacy.html">Quyền riêng tư</a><a href="/admin.html">Khu vực quản trị</a></footer>
+  <footer class="site-footer"><a class="logo" href="/"><img class="brand-icon" src="/images/phishlens-logo.png" alt="">PhishLens</a><p>Gợi ý để kiểm tra kỹ hơn, không thay thế xác minh qua kênh chính thức.</p><a href="/community.html">Cộng đồng PhishLens</a><a href="/privacy.html">Quyền riêng tư</a><a href="/admin.html">Khu vực quản trị</a></footer>
   <script type="module" src="/site.js"></script>
 </body>
 </html>
