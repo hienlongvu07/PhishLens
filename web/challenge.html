@@ -1,1 +1,41 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Challenge an toàn số · PhishLens</title><link rel="stylesheet" href="/community.css"><script type="module" src="/challenge-page.js"></script></head><body><header class="community-nav"><a class="brand" href="/community.html">◉ PhishLens Community</a><nav><a href="/challenge.html">Challenge</a><a href="/beta.html">Beta</a><a href="/campaign.html">#DungClickVoi</a></nav></header><main class="community-wrap"><section class="community-hero"><p class="eyebrow">Challenge · Tình huống giả lập</p><h1>Bạn sẽ dừng lại ở dấu hiệu nào?</h1><p>Mỗi lượt gồm 10 câu được chọn ngẫu nhiên. Không dùng website hay giao dịch thật. Điểm và lời giải được xử lý ở máy chủ.</p></section><section class="community-panel"><div id="challenge-intro"><p>Trả lời theo thông tin trong từng tình huống. Sau khi nộp, bạn sẽ thấy đáp án, giải thích và bước nên làm tiếp theo.</p><div class="turnstile-slot" id="challenge-turnstile"></div><button id="challenge-start" class="community-button" disabled>Bắt đầu Challenge</button></div><form id="challenge-form" class="community-form hidden"><div id="question-list"></div><button class="community-button">Nộp câu trả lời</button></form><section id="challenge-result" class="hidden" aria-live="polite"></section><p id="challenge-status" class="status" role="status"></p></section></main></body></html>
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Thử sức với các tình huống giả lập về an toàn số cùng PhishLens.">
+  <title>Challenge an toàn số · PhishLens</title>
+  <link rel="stylesheet" href="/community.css">
+  <script type="module" src="/challenge-page.js"></script>
+</head>
+<body>
+  <header class="community-nav">
+    <a class="brand" href="/community.html">◉ PhishLens Community</a>
+    <nav aria-label="Điều hướng">
+      <a href="/challenge.html">Challenge</a>
+      <a href="/beta.html">Beta</a>
+      <a href="/campaign.html">#DungClickVoi</a>
+    </nav>
+  </header>
+  <main class="community-wrap">
+    <section class="community-hero">
+      <p class="eyebrow">Challenge · Tình huống giả lập</p>
+      <h1>Bạn sẽ dừng lại ở dấu hiệu nào?</h1>
+      <p>Mỗi lượt gồm 10 câu được chọn ngẫu nhiên từ ngân hàng tình huống. Không dùng website hay giao dịch thật.</p>
+    </section>
+    <section class="community-panel">
+      <div id="challenge-intro">
+        <p>Trả lời theo thông tin trong từng tình huống. Sau khi nộp, bạn sẽ thấy đáp án, giải thích và bước nên làm tiếp theo.</p>
+        <p class="fine-print">Câu trả lời và điểm được xử lý ngay trên trình duyệt này; lượt chơi không gửi lên máy chủ và không được tính vào thống kê chung.</p>
+        <button id="challenge-start" type="button" class="community-button">Bắt đầu Challenge</button>
+      </div>
+      <form id="challenge-form" class="community-form hidden">
+        <div id="question-list"></div>
+        <button type="submit" class="community-button">Nộp câu trả lời</button>
+      </form>
+      <section id="challenge-result" class="hidden" aria-live="polite"></section>
+      <p id="challenge-status" class="status" role="status"></p>
+    </section>
+  </main>
+</body>
+</html>
