@@ -35,7 +35,7 @@ function renderParts(parts) {
 
 const SIGNAL_LABELS = {
   credentials_at: "Có dấu @ hoặc thông tin trước @", unicode_or_punycode: "Ký tự Unicode/punycode", lookalike_brand: "Tên gần giống thương hiệu mẫu", ip_address: "Dùng địa chỉ IP",
-  sample_blocklist: "Khớp danh sách demo", http: "Kết nối HTTP", suspicious_port: "Cổng không thường gặp", shortener: "Dịch vụ rút gọn liên kết",
+  sample_blocklist: "Khớp danh sách ví dụ của PhishLens", http: "Kết nối HTTP", suspicious_port: "Cổng không thường gặp", shortener: "Dịch vụ rút gọn liên kết",
   many_subdomains: "Tên miền có nhiều cấp", long_hostname: "Tên miền dài", encoded_path: "Đường dẫn có ký tự mã hóa", hyphenated_hostname: "Tên miền có gạch nối", suspicious_keyword: "Có từ khóa cần chú ý"
 };
 
@@ -63,53 +63,14 @@ function renderScore(result) {
 }
 
 async function readAiResponse(response) {
-  const contentType = response.headers.get("content-type") || "không có Content-Type";
   const text = await response.text();
   let data;
-  try { data = JSON.parse(text); }
-  catch {
-    const missingRoute = response.status === 404 || response.status === 410;
-    throw Object.assign(new Error(missingRoute
-      ? "API AI chưa có trong bản deploy hiện tại. Hãy deploy lại phiên bản mới nhất trên Vercel."
-      : "Máy chủ trả về phản hồi không đúng định dạng. Hãy thử lại sau."), {
-      technical: `HTTP ${response.status}; Content-Type: ${contentType}; phản hồi không phải JSON`
-    });
-  }
-  if (!response.ok) {
-    const messages = {
-      AI_NOT_CONFIGURED: "AI chưa được cấu hình trên máy chủ.",
-      AI_MODEL_INVALID: "Tên model Hive trên máy chủ không hợp lệ.",
-      HIVE_RATE_LIMITED: "Hive đang giới hạn yêu cầu. Hãy thử lại sau.",
-      HIVE_UNAVAILABLE: "Hive đang bận tạm thời. Hãy thử lại sau.",
-      HIVE_AUTH_FAILED: "Hive từ chối API key. Kiểm tra HIVE_API_KEY trên Vercel.",
-      HIVE_MODEL_NOT_FOUND: "Không tìm thấy model DeepSeek đã cấu hình trên Hive.",
-      HIVE_BALANCE_REQUIRED: "Tài khoản Hive cần có số dư tổ chức để gọi model.",
-      HIVE_REQUEST_INVALID: "Hive từ chối yêu cầu. Mở chi tiết kỹ thuật để xem lý do.",
-      AI_TIMEOUT: "Hive phản hồi quá thời gian chờ.",
-      AI_INVALID_OUTPUT: "Hive trả về kết quả không đọc được. Hãy thử lại.",
-      AI_SERVICE_ERROR: "Dịch vụ AI đang gặp lỗi. Kết quả kiểm tra cục bộ vẫn còn."
-    };
-    const code = typeof data.code === "string" ? data.code : "";
-    const fallback = response.status === 429 ? "Dịch vụ AI đang bận. Hãy thử lại sau."
-      : response.status === 404 ? "API AI chưa có trong bản deploy hiện tại. Hãy deploy lại trên Vercel."
-        : response.status === 503 ? "Dịch vụ AI chưa sẵn sàng. Kiểm tra cấu hình Vercel."
-          : "Chưa thể phân tích bằng AI. Kết quả kiểm tra cục bộ vẫn còn.";
-    throw Object.assign(new Error(messages[code] || fallback), {
-      technical: `HTTP ${response.status}${code ? `; ${code}` : ""}${data.providerStatus ? `; Hive ${String(data.providerStatus).slice(0, 80)}` : ""}${data.providerMessage ? `; ${String(data.providerMessage).slice(0, 240)}` : ""}${data.error ? `; ${String(data.error).slice(0, 120)}` : ""}`
-    });
-  }
+  try { data = JSON.parse(text); } catch { data = null; }
+  if (!response.ok || !data) throw new Error("unavailable");
   if (!data?.ai || typeof data.ai.summary !== "string" || !Array.isArray(data.ai.evidence) || !Array.isArray(data.ai.nextSteps)) {
-    throw Object.assign(new Error("Máy chủ AI trả về kết quả thiếu dữ liệu. Hãy thử lại sau."), {
-      technical: `HTTP ${response.status}; JSON không đúng cấu trúc AI đã yêu cầu`
-    });
+    throw new Error("unavailable");
   }
   return data;
-}
-
-function clearAiError() {
-  $("#ai-error-details").classList.add("hidden");
-  $("#ai-error-details").open = false;
-  $("#ai-error-technical").textContent = "";
 }
 
 async function init() {
@@ -117,10 +78,10 @@ async function init() {
   currentUrl = tab?.url || "";
   const result = analyzeUrl(currentUrl);
   currentAnalysis = result;
-  $("#domain").textContent = result.valid ? result.hostname : (currentUrl || result.hostname);
+  $("#domain").textContent = result.valid ? result.hostname : "Trang này chưa hỗ trợ kiểm tra";
   $("#level").textContent = result.level;
   $("#level").className = `level ${result.band === "high" ? "risk" : result.band === "caution" ? "caution" : "clear"}`;
-  $("#summary").textContent = result.valid ? `${result.findings.length} dấu hiệu cần xem xét · phân tích trong trình duyệt` : "Mở một website bắt đầu bằng http:// hoặc https:// để PhishLens phân tích. Các trang chrome://, edge:// và trang tiện ích bị trình duyệt giới hạn.";
+  $("#summary").textContent = result.valid ? `${result.findings.length} dấu hiệu cần chú ý` : "Trang này chưa thể kiểm tra. Hãy mở một website có địa chỉ bắt đầu bằng http:// hoặc https://.";
   $("#finding-count").textContent = String(result.findings.length);
   renderList($("#findings"), result.findings);
   $("#no-findings").classList.toggle("hidden", result.findings.length > 0 || !result.valid);
@@ -129,8 +90,8 @@ async function init() {
   $("#report").disabled = !result.valid;
   $("#ai-analyze").disabled = !result.valid;
   $("#ai-consent-note").textContent = result.valid
-    ? "Chỉ gửi hostname và dấu hiệu tới PhishLens sau khi bạn xác nhận."
-    : "AI chỉ hoạt động trên trang HTTP(S). Hãy mở một website rồi bấm biểu tượng PhishLens; Chrome/Edge không cho extension đọc trang hệ thống.";
+    ? "Tên miền và dấu hiệu chỉ được gửi khi bạn chọn tiếp tục."
+    : "Mở một website để xem kết quả kiểm tra.";
   $("#report").textContent = "Gửi báo cáo đến website PhishLens";
 }
 
@@ -159,6 +120,7 @@ for (const [id, path] of [["#community-link", "/community.html"], ["#challenge-l
 function requestAiConsent(hostname) {
   const dialog = $("#ai-consent-dialog");
   $("#consent-domain").textContent = hostname;
+  dialog.returnValue = "cancel";
   dialog.showModal();
   return new Promise((resolve) => {
     dialog.addEventListener("close", () => resolve(dialog.returnValue === "approve"), { once: true });
@@ -176,9 +138,8 @@ $("#ai-analyze").addEventListener("click", async () => {
   const status = $("#ai-status");
   button.disabled = true;
   button.textContent = "Đang phân tích…";
-  status.textContent = "Đang gửi hostname và mã dấu hiệu đã trích xuất.";
+  status.textContent = "Đang chuẩn bị phần giải thích…";
   status.classList.remove("is-error");
-  clearAiError();
   $("#ai-result").classList.add("hidden");
   $("#community-result").classList.add("hidden");
   try {
@@ -190,7 +151,7 @@ $("#ai-analyze").addEventListener("click", async () => {
     const data = await readAiResponse(response);
     const community = $("#community-result");
     if (data.community?.status === "verified") {
-      const label = document.createElement("b"); label.textContent = `Dữ liệu PhishLens · Đã xác minh${data.community.demo ? " (demo)" : ""}`;
+      const label = document.createElement("b"); label.textContent = `Cảnh báo PhishLens đã xác minh${data.community.demo ? " · Tình huống minh họa" : ""}`;
       const summary = document.createElement("p"); summary.textContent = data.community.summary;
       community.replaceChildren(label, summary);
       if (data.community.sourceUrl) {
@@ -201,44 +162,37 @@ $("#ai-analyze").addEventListener("click", async () => {
     }
     const result = $("#ai-result");
     result.replaceChildren();
-    const heading = document.createElement("b"); heading.textContent = "Giải thích AI";
+    const heading = document.createElement("b"); heading.textContent = "Giải thích thêm";
     const summary = document.createElement("p"); summary.textContent = data.ai.summary;
     result.append(heading, summary);
-    for (const [title, values] of [["Bằng chứng được đưa vào", data.ai.evidence], ["Bạn có thể làm gì", data.ai.nextSteps]]) {
+    for (const [title, values] of [["Dấu hiệu được xem xét", data.ai.evidence], ["Bạn có thể làm gì", data.ai.nextSteps]]) {
       if (!values?.length) continue;
       const label = document.createElement("b"); label.textContent = title;
       const list = document.createElement("ul");
       for (const value of values) { const item = document.createElement("li"); item.textContent = value; list.append(item); }
       result.append(label, list);
     }
-    const limits = document.createElement("p"); limits.className = "ai-limitation"; limits.textContent = `Giới hạn: ${data.ai.limitations} Trạng thái vẫn do quy tắc và dữ liệu PhishLens quyết định.`;
+    const limits = document.createElement("p"); limits.className = "ai-limitation"; limits.textContent = `Lưu ý: ${data.ai.limitations} Điểm rủi ro phía trên không thay đổi.`;
     result.append(limits);
     result.classList.remove("hidden");
-    clearAiError();
-    status.textContent = "AI đã giải thích tín hiệu; đây không phải xác minh website.";
-    button.textContent = "Phân tích lại bằng AI";
-  } catch (error) {
-    if (!error.technical) {
-      const networkFailure = error.name === "TypeError";
-      error.message = networkFailure
-        ? "Không kết nối được API PhishLens. Kiểm tra mạng hoặc domain cấu hình trong extension."
-        : "Chưa thể phân tích bằng AI. Kết quả cục bộ vẫn còn; bạn có thể thử lại.";
-      error.technical = `${error.name || "Error"}: yêu cầu không hoàn tất`;
-    }
-    status.textContent = error.message;
+    status.textContent = "Phần giải thích chỉ để tham khảo; hãy tự xác minh qua kênh chính thức.";
+    button.textContent = "Xem giải thích lại";
+  } catch {
+    status.textContent = "Chưa lấy được phần giải thích lúc này. Kết quả kiểm tra vẫn còn; bạn có thể thử lại sau.";
     status.classList.add("is-error");
-    if (error.technical) {
-      $("#ai-error-technical").textContent = error.technical;
-      $("#ai-error-details").classList.remove("hidden");
-    }
-    button.textContent = "Thử lại phân tích AI";
+    button.textContent = "Thử lại phần giải thích";
   } finally {
     button.disabled = false;
   }
 });
 $("#report").addEventListener("click", async () => {
   const type = $("#report-type").value;
-  const approved = window.confirm(`XEM LẠI TRƯỚC KHI GỬI\n\nURL ĐẦY ĐỦ (gồm query và fragment):\n${currentUrl}\n\nLoại nghi ngờ: ${type}\nNơi nhận: ${API_BASE}\n\nQuery có thể chứa mã phiên hoặc thông tin riêng tư. Chỉ tiếp tục nếu bạn đã kiểm tra URL và muốn chia sẻ đầy đủ với nhóm PhishLens. Extension không gửi mật khẩu, OTP, cookie hay nội dung trang.`);
+  const dialog = $("#report-confirm-dialog");
+  $("#report-confirm-url").textContent = currentUrl;
+  $("#report-confirm-type").textContent = type;
+  dialog.returnValue = "cancel";
+  dialog.showModal();
+  const approved = await new Promise((resolve) => dialog.addEventListener("close", () => resolve(dialog.returnValue === "approve"), { once: true }));
   if (!approved) return;
   const button = $("#report"); button.disabled = true; button.textContent = "Đang gửi…";
   try {
@@ -247,13 +201,15 @@ $("#report").addEventListener("click", async () => {
       body: JSON.stringify({ url: currentUrl, type, source: "extension" }),
       credentials: "omit", cache: "no-store", redirect: "error"
     });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+    let data = {};
+    try { data = await response.json(); } catch { /* Use a friendly message below. */ }
+    if (!response.ok) throw new Error("report_failed");
+    button.disabled = true;
     button.textContent = "Đã gửi báo cáo";
-    $("#report-status").textContent = `Đã tiếp nhận để xem xét · Mã ${String(data.id).slice(0, 8)}. Chưa phải xác minh.`;
-  } catch (error) {
+    $("#report-status").textContent = "Đã gửi để nhóm PhishLens xem xét. Báo cáo chưa phải kết luận xác minh.";
+  } catch {
     button.disabled = false; button.textContent = "Thử gửi lại";
-    $("#report-status").textContent = `Chưa gửi được (${error.message}). Kiểm tra kết nối tới PhishLens rồi thử lại.`;
+    $("#report-status").textContent = "Chưa gửi được báo cáo. Hãy kiểm tra kết nối rồi thử lại.";
   }
 });
 

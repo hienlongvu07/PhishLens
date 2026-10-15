@@ -65,9 +65,13 @@ document.querySelector("#lookup-form").addEventListener("submit", async (event) 
   event.preventDefault();
   const input = document.querySelector("#lookup-input").value.trim();
   const result = document.querySelector("#lookup-result");
-  result.className = "lookup-result"; result.textContent = "Đang tra cứu dữ liệu đã xác minh…";
+  result.className = "lookup-result"; result.textContent = "Đang tìm thông tin PhishLens đã xác minh…";
   try {
-    const response = await fetch(`/api/lookup?url=${encodeURIComponent(input)}`);
+    const candidate = /^https?:\/\//i.test(input) ? input : `https://${input}`;
+    let parsed;
+    try { parsed = new URL(candidate); } catch { throw new Error("invalid_address"); }
+    if (!["http:", "https:"].includes(parsed.protocol) || !parsed.hostname || parsed.username || parsed.password) throw new Error("invalid_address");
+    const response = await fetch(`/api/lookup?url=${encodeURIComponent(parsed.origin)}`);
     const data = await response.json(); if (!response.ok) throw new Error(data.error || "Không tra cứu được.");
     result.replaceChildren();
     const icon = document.createElement("div"); icon.className = "empty-mark"; icon.textContent = data.status === "Đã được xác minh" ? "!" : data.status === "Đang xem xét" ? "…" : "⌕";
@@ -75,14 +79,14 @@ document.querySelector("#lookup-form").addEventListener("submit", async (event) 
     const heading = document.createElement("b"); heading.textContent = data.status; content.append(heading);
     if (data.item) {
       const checkedAt = data.item.updatedAt ? new Date(data.item.updatedAt).toLocaleDateString("vi-VN") : "chưa rõ";
-      const p = document.createElement("p"); p.textContent = `${data.item.demo ? "[DEMO] " : ""}${data.item.hostname} · ${data.item.type}. ${data.item.summary} Trạng thái: ${data.item.status}; cập nhật ${checkedAt}.`; content.append(p);
+      const p = document.createElement("p"); p.textContent = `${data.item.demo ? "Tình huống minh họa · " : ""}${data.item.hostname} · ${data.item.type}. ${data.item.summary} Trạng thái: ${data.item.status}; cập nhật ${checkedAt}.`; content.append(p);
       if (data.item.sourceUrl) { const link = document.createElement("a"); link.href = data.item.sourceUrl; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Mở nguồn đã được quản trị viên đối chiếu ↗"; content.append(link); }
-      if (!data.item.demo) { const note = document.createElement("small"); note.textContent = `Nguồn đăng: ${data.item.source}. Cảnh báo chỉ áp dụng cho hostname được ghi nhận, không kết luận mọi đường dẫn tại đó đều lừa đảo.`; content.append(note); }
+      if (!data.item.demo) { const note = document.createElement("small"); note.textContent = `Nguồn đăng: ${data.item.source}. Cảnh báo áp dụng cho tên miền được ghi nhận; không có nghĩa mọi trang trên đó đều lừa đảo.`; content.append(note); }
     }
     else { const p = document.createElement("p"); p.textContent = data.message; content.append(p); }
     result.append(icon, content);
     result.classList.add(data.status === "Đã được xác minh" ? "state-verified" : data.status === "Đang xem xét" ? "state-review" : "state-none");
-  } catch (error) { result.textContent = `Không kết nối được với PhishLens: ${error.message}`; }
+  } catch (error) { result.textContent = error.message === "invalid_address" ? "Hãy nhập tên miền hoặc địa chỉ website hợp lệ." : "Chưa tra cứu được lúc này. Hãy kiểm tra kết nối và thử lại."; }
 });
 
 const reportForm = document.querySelector("#report-form");
@@ -109,6 +113,6 @@ $("#confirm-report").addEventListener("click", async () => {
     const response = await fetch("/api/reports", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: pendingReport.url, type: pendingReport.type, description: pendingReport.description, source: "website", website: pendingReport.website }) });
     const result = await response.json(); if (!response.ok) throw new Error(result.error || "Không gửi được.");
     reportDialog.close(); status.textContent = `${result.message} Mã tiếp nhận: ${String(result.id).slice(0, 8)}.`; reportForm.reset(); pendingReport = null;
-  } catch (error) { status.classList.add("error"); status.textContent = `Chưa gửi được: ${error.message}`; }
+  } catch { status.classList.add("error"); status.textContent = "Chưa gửi được báo cáo. Hãy kiểm tra kết nối rồi thử lại."; }
   finally { button.disabled = false; }
 });

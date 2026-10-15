@@ -10,14 +10,14 @@
   <main>
     <header><div class="brand-mark" aria-hidden="true">◉</div><div><h1>PhishLens</h1><p class="tagline">Hiểu liên kết trước khi tin</p></div></header>
     <section class="score-card" aria-live="polite">
-      <p class="eyebrow">ĐÁNH GIÁ THEO QUY TẮC</p>
+      <p class="eyebrow">KẾT QUẢ KIỂM TRA</p>
       <p id="level" class="level">Đang phân tích…</p>
       <p id="domain" class="domain">Đang đọc trang hiện tại…</p>
       <p id="summary" class="summary"></p>
       <div id="risk-score-card" class="risk-score hidden" aria-label="Điểm rủi ro theo quy tắc">
         <div class="score-total"><strong id="risk-score">—</strong><span>/100 · điểm rủi ro</span></div>
         <div class="score-track" role="progressbar" aria-label="Điểm rủi ro theo quy tắc" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="score-fill"></span></div>
-        <p>Điểm rủi ro không phải xác suất lừa đảo; điểm thấp không đồng nghĩa an toàn.</p>
+        <p>Điểm dựa trên dấu hiệu của địa chỉ. Điểm thấp không chứng minh website an toàn.</p>
       </div>
       <section id="manual-check-area" class="reputation-area" aria-label="Kiểm tra thủ công tại nguồn độc lập">
         <div class="reputation-heading"><b>Muốn đối chiếu thêm?</b></div>
@@ -33,11 +33,10 @@
     <section id="url-parts" class="panel hidden"><p class="panel-intro">URL được chia thành các phần dưới đây để bạn nhận ra tên miền và đích đến.</p><dl id="parts" class="parts"></dl></section>
     <section id="guide" class="panel hidden"><div id="mini-guide" class="guide-mini"></div><a id="guide-link" class="site-guide" href="#cam-nang" target="_blank" rel="noopener noreferrer">Mở cẩm nang đầy đủ trên website ↗</a></section>
     <section class="ai-area" aria-labelledby="ai-title">
-      <p id="ai-title" class="ai-kicker">Giải thích thêm với AI</p>
-      <button id="ai-analyze" class="ai-button" disabled>✦ Nhờ AI phân tích thêm</button>
-      <p id="ai-consent-note" class="ai-consent-note" role="status">Chỉ gửi hostname và mã dấu hiệu sau khi bạn xác nhận.</p>
+      <p id="ai-title" class="ai-kicker">Giải thích thêm</p>
+      <button id="ai-analyze" class="ai-button" disabled>✦ Giải thích bằng AI</button>
+      <p id="ai-consent-note" class="ai-consent-note" role="status">Chỉ gửi tên miền và dấu hiệu sau khi bạn xác nhận.</p>
       <div id="ai-status" class="ai-status" role="status" aria-live="polite"></div>
-      <details id="ai-error-details" class="ai-error-details hidden"><summary>Chi tiết kỹ thuật</summary><code id="ai-error-technical"></code></details>
       <div id="community-result" class="community-result hidden"></div>
       <section id="ai-result" class="ai-result hidden" aria-label="Giải thích từ AI"></section>
     </section>    <div class="report-area"><label class="report-type-label" for="report-type">Loại nghi ngờ</label><select id="report-type"><option value="Liên kết rút gọn/website/tệp lạ">Liên kết rút gọn/website/tệp lạ</option><option value="Giả mạo ngân hàng/tổ chức">Giả mạo ngân hàng/tổ chức</option><option value="Lừa lấy mật khẩu hoặc OTP">Lừa lấy mật khẩu hoặc OTP</option><option value="Giả mạo cơ quan/dịch vụ công">Giả mạo cơ quan/dịch vụ công</option><option value="Tuyển dụng/việc làm giả">Tuyển dụng/việc làm giả</option><option value="Quà tặng/khuyến mãi">Quà tặng/khuyến mãi</option><option value="Đầu tư/vay đáng ngờ">Đầu tư/vay đáng ngờ</option><option value="Khác">Khác</option></select><button id="report" class="report" disabled>Gửi báo cáo đến website PhishLens</button><p id="report-status" class="report-status">URL chỉ được gửi sau khi bạn xem trước và xác nhận.</p></div>
@@ -45,14 +44,28 @@
   </main>
   <dialog id="ai-consent-dialog" class="consent-dialog" aria-labelledby="ai-consent-title" aria-describedby="ai-consent-description">
     <form method="dialog">
-      <p class="consent-eyebrow">PHISHLENS · GIẢI THÍCH BỔ SUNG</p>
-      <h2 id="ai-consent-title">Gửi dấu hiệu để được giải thích?</h2>
-      <p id="ai-consent-description">PhishLens sẽ gửi tên miền và các dấu hiệu đã phát hiện đến máy chủ PhishLens. Máy chủ chuyển thông tin này tới Hive để tạo phần giải thích bằng AI.</p>
+      <p class="consent-eyebrow">GIẢI THÍCH BỔ SUNG</p>
+      <h2 id="ai-consent-title">Bạn muốn xem giải thích từ AI?</h2>
+      <p id="ai-consent-description">PhishLens sẽ chuyển tên miền và các dấu hiệu tìm thấy tới đối tác xử lý AI (Hive) để tạo phần giải thích. Nếu đã có cảnh báo PhishLens xác minh cho tên miền này, thông tin cảnh báo cũng được chuyển kèm. Việc này không làm thay đổi điểm rủi ro.</p>
       <div class="consent-domain"><span>Website đang kiểm tra</span><strong id="consent-domain"></strong></div>
-      <p class="consent-privacy">Không gửi phần đường dẫn, nội dung sau dấu ? hoặc #, thông tin đăng nhập, cookie hay nội dung trang. Kết quả chỉ mang tính tham khảo và không quyết định điểm rủi ro.</p>
+      <p class="consent-privacy">Không gửi đường dẫn đầy đủ, thông tin sau dấu ? hoặc #, thông tin đăng nhập, cookie hay nội dung trang. Phần giải thích chỉ mang tính tham khảo.</p>
       <div class="consent-actions">
         <button id="ai-consent-cancel" class="consent-cancel" value="cancel" autofocus>Để sau</button>
         <button id="ai-consent-approve" class="consent-approve" value="approve">Tiếp tục</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="report-confirm-dialog" class="consent-dialog" aria-labelledby="report-confirm-title" aria-describedby="report-confirm-description">
+    <form method="dialog">
+      <p class="consent-eyebrow">GỬI BÁO CÁO</p>
+      <h2 id="report-confirm-title">Kiểm tra thông tin trước khi gửi</h2>
+      <p id="report-confirm-description">URL đầy đủ bên dưới, kể cả phần sau dấu ? và #, sẽ được gửi cho nhóm PhishLens xem xét. Những phần này đôi khi chứa mã phiên hoặc thông tin riêng tư.</p>
+      <div class="consent-domain"><span>URL sẽ gửi</span><strong id="report-confirm-url"></strong></div>
+      <div class="consent-domain"><span>Loại nghi ngờ</span><strong id="report-confirm-type"></strong></div>
+      <p class="consent-privacy">Báo cáo mới chưa phải kết luận. Không gửi mật khẩu, mã OTP hoặc thông tin thanh toán.</p>
+      <div class="consent-actions">
+        <button id="report-consent-cancel" class="consent-cancel" value="cancel">Quay lại</button>
+        <button id="report-consent-approve" class="consent-approve" value="approve">Gửi báo cáo</button>
       </div>
     </form>
   </dialog>
