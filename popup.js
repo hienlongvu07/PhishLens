@@ -78,14 +78,15 @@ async function readAiResponse(response) {
   if (!response.ok) {
     const messages = {
       AI_NOT_CONFIGURED: "AI chưa được cấu hình trên máy chủ.",
-      AI_MODEL_INVALID: "Tên model Gemini trên máy chủ không hợp lệ.",
-      GEMINI_RATE_LIMITED: "Gemini đang giới hạn yêu cầu. Hãy thử lại sau.",
-      GEMINI_UNAVAILABLE: "Gemini đang quá tải tạm thời. Hãy chờ một chút rồi thử lại.",
-      GEMINI_AUTH_FAILED: "Gemini từ chối API key. Kiểm tra cấu hình trên Vercel.",
-      GEMINI_MODEL_NOT_FOUND: "Không tìm thấy model Gemini đã cấu hình.",
-      GEMINI_REQUEST_INVALID: "Gemini từ chối yêu cầu. Mở chi tiết kỹ thuật để xem lý do.",
-      AI_TIMEOUT: "Gemini phản hồi quá thời gian chờ.",
-      AI_INVALID_OUTPUT: "Gemini trả về kết quả không đọc được. Hãy thử lại.",
+      AI_MODEL_INVALID: "Tên model Hive trên máy chủ không hợp lệ.",
+      HIVE_RATE_LIMITED: "Hive đang giới hạn yêu cầu. Hãy thử lại sau.",
+      HIVE_UNAVAILABLE: "Hive đang bận tạm thời. Hãy thử lại sau.",
+      HIVE_AUTH_FAILED: "Hive từ chối API key. Kiểm tra HIVE_API_KEY trên Vercel.",
+      HIVE_MODEL_NOT_FOUND: "Không tìm thấy model DeepSeek đã cấu hình trên Hive.",
+      HIVE_BALANCE_REQUIRED: "Tài khoản Hive cần có số dư tổ chức để gọi model.",
+      HIVE_REQUEST_INVALID: "Hive từ chối yêu cầu. Mở chi tiết kỹ thuật để xem lý do.",
+      AI_TIMEOUT: "Hive phản hồi quá thời gian chờ.",
+      AI_INVALID_OUTPUT: "Hive trả về kết quả không đọc được. Hãy thử lại.",
       AI_SERVICE_ERROR: "Dịch vụ AI đang gặp lỗi. Kết quả kiểm tra cục bộ vẫn còn."
     };
     const code = typeof data.code === "string" ? data.code : "";
@@ -94,7 +95,7 @@ async function readAiResponse(response) {
         : response.status === 503 ? "Dịch vụ AI chưa sẵn sàng. Kiểm tra cấu hình Vercel."
           : "Chưa thể phân tích bằng AI. Kết quả kiểm tra cục bộ vẫn còn.";
     throw Object.assign(new Error(messages[code] || fallback), {
-      technical: `HTTP ${response.status}${code ? `; ${code}` : ""}${data.providerStatus ? `; Gemini ${String(data.providerStatus).slice(0, 80)}` : ""}${data.providerMessage ? `; ${String(data.providerMessage).slice(0, 240)}` : ""}${data.error ? `; ${String(data.error).slice(0, 120)}` : ""}`
+      technical: `HTTP ${response.status}${code ? `; ${code}` : ""}${data.providerStatus ? `; Hive ${String(data.providerStatus).slice(0, 80)}` : ""}${data.providerMessage ? `; ${String(data.providerMessage).slice(0, 240)}` : ""}${data.error ? `; ${String(data.error).slice(0, 120)}` : ""}`
     });
   }
   if (!data?.ai || typeof data.ai.summary !== "string" || !Array.isArray(data.ai.evidence) || !Array.isArray(data.ai.nextSteps)) {
@@ -155,7 +156,7 @@ $("#ai-analyze").addEventListener("click", async () => {
   if (!currentAnalysis?.valid) return;
   const hostname = currentAnalysis.canonicalHostname;
   const signalCodes = [...new Set(currentAnalysis.signals.map(({ code }) => code))];
-  const approved = window.confirm(`PHÂN TÍCH VỚI AI\n\nGửi hostname và mã dấu hiệu tới PhishLens (${API_BASE}); máy chủ chuyển chúng tới Google Gemini.\n\nHostname: ${hostname}\nDấu hiệu: ${signalCodes.length ? signalCodes.join(", ") : "không có"}\n\nKhông gửi đường dẫn, query, fragment, thông tin đăng nhập, cookie hay nội dung trang. Với Gemini API free tier, Google có thể dùng dữ liệu để cải thiện sản phẩm. AI chỉ giải thích, không quyết định điểm. Tiếp tục?`);
+  const approved = window.confirm(`PHÂN TÍCH VỚI AI\n\nGửi hostname và mã dấu hiệu tới PhishLens (${API_BASE}); máy chủ chuyển chúng tới Hive để dùng model DeepSeek.\n\nHostname: ${hostname}\nDấu hiệu: ${signalCodes.length ? signalCodes.join(", ") : "không có"}\n\nKhông gửi đường dẫn, query, fragment, thông tin đăng nhập, cookie hay nội dung trang. Hive xử lý yêu cầu theo chính sách của họ. AI chỉ giải thích, không quyết định điểm. Tiếp tục?`);
   if (!approved) return;
 
   const button = $("#ai-analyze");

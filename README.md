@@ -6,9 +6,9 @@ PhishLens là dự án thử nghiệm cộng đồng gồm tiện ích Chrome/Ed
 
 ## Phân tích AI tùy chọn
 
-Nút **Nhờ AI phân tích thêm** chỉ chạy sau xác nhận riêng. Extension gửi hostname chuẩn hóa và mã dấu hiệu; không gửi URL đầy đủ, đường dẫn, query, fragment hay nội dung trang. API tra cảnh báo đã xác minh phía server rồi mới gọi Gemini generateContent API. AI chỉ giải thích; mức cục bộ và trạng thái cảnh báo vẫn là nguồn quyết định. Xem [chính sách riêng tư](web/privacy.html) và [hướng dẫn triển khai](DEPLOYMENT.md) để cấu hình `GEMINI_API_KEY` (chỉ ở server) cùng `GEMINI_MODEL` trên Vercel.
+Nút **Nhờ AI phân tích thêm** chỉ chạy sau xác nhận riêng. Extension gửi hostname chuẩn hóa và mã dấu hiệu; không gửi URL đầy đủ, đường dẫn, query, fragment hay nội dung trang. API tra cảnh báo đã xác minh phía server rồi mới chuyển dữ liệu tới Hive để dùng model DeepSeek. AI chỉ giải thích; mức cục bộ và trạng thái cảnh báo vẫn là nguồn quyết định. Xem [chính sách riêng tư](web/privacy.html) và [hướng dẫn triển khai](DEPLOYMENT.md) để cấu hình `HIVE_API_KEY` (chỉ ở server) cùng `HIVE_MODEL` trên Vercel.
 
-API mới: `POST /api/analyze` với `{ "hostname": "example.com", "signalCodes": ["http"] }`. Không gửi URL hoặc trường khác. Lời giải thích không được lưu vào Supabase. Với Gemini API free tier, Google có thể dùng prompt/phản hồi để cải thiện sản phẩm; xem điều khoản Google trước khi bật cho người dùng thật.
+API mới: `POST /api/analyze` với `{ "hostname": "example.com", "signalCodes": ["http"] }`. Không gửi URL hoặc trường khác. Lời giải thích không được lưu vào Supabase. Hive nhận hostname, mã dấu hiệu và cảnh báo PhishLens đã xác minh (nếu có), rồi phục vụ model DeepSeek. Xem [tài liệu Hive](https://docs.thehive.ai/docs/chat-completions-openai-compatible-llms) và [hướng dẫn triển khai](DEPLOYMENT.md) trước khi bật cho người dùng thật.
 
 ## Điểm rủi ro PhishLens và kiểm tra thủ công
 

@@ -9,7 +9,7 @@ PhishLens là monorepo. Kết nối toàn bộ repository với Vercel từ thư
 | Website | Vercel | Root Directory là repository root; Output Directory là `web`. `vercel.json` đã khai báo. |
 | API và tác vụ định kỳ | Vercel Functions | Các route nằm trong `api/`; cron dọn báo cáo khai báo trong `vercel.json`. |
 | Cơ sở dữ liệu và Auth | Supabase | Giữ project hiện có; không cần chạy lại migration khi chuyển hosting. |
-| Bí mật backend | Vercel → Project Settings → Environment Variables | Khai báo `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAILS`, `CRON_SECRET`, `GEMINI_API_KEY`, `GEMINI_MODEL`. Đánh dấu các API key và secret là nhạy cảm. |
+| Bí mật backend | Vercel → Project Settings → Environment Variables | Khai báo `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAILS`, `CRON_SECRET`, `HIVE_API_KEY`, `HIVE_MODEL`. Đánh dấu các API key và secret là nhạy cảm. |
 | Extension | Chrome Web Store | Build ZIP riêng với domain Vercel; không tải extension lên Vercel hay Supabase. |
 
 ## Deploy lên Vercel
@@ -23,11 +23,11 @@ PhishLens là monorepo. Kết nối toàn bộ repository với Vercel từ thư
 
 ## Phân tích AI tùy chọn
 
-Để bật nút **Nhờ AI phân tích thêm**, thêm `GEMINI_API_KEY` (đánh dấu secret) và `GEMINI_MODEL` (ví dụ `gemini-3.6-flash`) trong Vercel Project Settings → Environment Variables cho Production, và Preview nếu cần. Tạo API key trong Google AI Studio; không đặt key vào extension, website tĩnh, GitHub hoặc file đã commit. Redeploy sau khi lưu biến.
+Để bật nút **Nhờ AI phân tích thêm**, tạo Service API Key trong Hive, sau đó thêm `HIVE_API_KEY` (đánh dấu sensitive/secret) và `HIVE_MODEL=deepseek-ai/deepseek-v4.1-flash` trong Vercel Project Settings → Environment Variables cho Production, và Preview nếu cần. Hive dùng endpoint OpenAI-compatible dạng streaming `https://api-cdn.thehive.ai/api/v3/chat/completions`; model DeepSeek trả lời theo SSE và PhishLens ráp các phần trả về thành JSON. Hive yêu cầu số dư dương cho tổ chức và giới hạn mặc định 5 yêu cầu/giây; xem [tài liệu API](https://docs.thehive.ai/docs/chat-completions-openai-compatible-llms), [tài liệu model](https://docs.thehive.ai/docs/deepseek-v41-flash) và giá hiện hành trước khi bật. Không đặt key vào extension, website tĩnh, GitHub hoặc file đã commit. Redeploy sau khi lưu biến.
 
-Endpoint `POST /api/analyze` chỉ nhận `{ hostname, signalCodes }`, từ chối trường bổ sung và giới hạn body 2.500 ký tự, tối đa 20 mã tín hiệu. Function truy vấn hostname trong `verified_alerts`, rồi gửi hostname, mã dấu hiệu và thông tin cảnh báo đã xác minh (nếu có) tới Gemini `generateContent`. Prompt/kết quả không được ghi vào Supabase; request dùng JSON response schema, timeout 10 giây, đầu ra giới hạn 350 token và được kiểm tra cấu trúc/độ dài. Với Gemini 3.6 trở lên, không truyền `temperature`, `top_p` hoặc `top_k`; các tham số này đã bị ngừng hỗ trợ. Vercel Firewall rate limit cho `/api/*` cũng nên bao gồm endpoint này.
+Endpoint `POST /api/analyze` chỉ nhận `{ hostname, signalCodes }`, từ chối trường bổ sung và giới hạn body 2.500 ký tự, tối đa 20 mã tín hiệu. Function truy vấn hostname trong `verified_alerts`, rồi gửi hostname, mã dấu hiệu và thông tin cảnh báo đã xác minh (nếu có) tới Hive Chat Completions. Prompt/kết quả không được ghi vào Supabase; request có timeout 10 giây, đầu ra giới hạn 500 token và được kiểm tra cấu trúc/độ dài. Vercel Firewall rate limit cho `/api/*` cũng nên bao gồm endpoint này.
 
-Nếu thiếu key, timeout hoặc Google Gemini trả lỗi, popup giữ kết quả cục bộ và cho thử lại. Nếu dự án dùng free tier, Google có thể dùng prompt và phản hồi để cải thiện sản phẩm; cân nhắc điều này trước khi bật tính năng công khai. Khi phát hành giao diện popup mới, build lại ZIP bằng `npm.cmd run build:extension -- --site-url=https://<ten-site>.vercel.app` rồi tải bản cập nhật lên Chrome Web Store.
+Nếu thiếu key, tổ chức Hive hết số dư, timeout hoặc Hive tạm lỗi, popup giữ kết quả cục bộ và cho thử lại. Dữ liệu hostname, mã dấu hiệu và cảnh báo đã xác minh được chuyển tới Hive để xử lý bằng model DeepSeek; người dùng cần đồng ý trước khi gửi. Khi phát hành giao diện popup mới, build lại ZIP bằng `npm.cmd run build:extension -- --site-url=https://<ten-site>.vercel.app` rồi tải bản cập nhật lên Chrome Web Store.
 
 ## Kiểm tra thủ công trên dịch vụ bên thứ ba
 

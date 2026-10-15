@@ -120,8 +120,8 @@ test("AI analysis accepts only hostname and signal codes and returns verified so
   const aiResult = { summary: "Có dấu hiệu cần xem xét.", evidence: ["Tên miền dùng HTTP."], nextSteps: ["Tự mở website chính thức."], limitations: "Không xác minh toàn bộ website." };
   const handlers = createApiHandlers({
     makeAdminClient: () => ({ from: () => ({ select() { return this; }, eq(_field, host) { this.host = host; return this; }, async maybeSingle() { return { data: this.host === "login-verify-example.test" ? { hostname: this.host, type: "demo", summary: "Cảnh báo demo đã xác minh.", source_url: "https://example.org/source", status: "Đã xác minh", source: "PhishLens", updated_at: "2026-10-14", is_demo: true, url: "https://must-not-send.test/?secret=1" } : null, error: null }; } }) }),
-    geminiApiKey: () => "test-key", geminiModel: () => "test-model",
-    fetchImpl: async (url, init) => { requests.push({ url, init, body: JSON.parse(init.body) }); return Response.json({ candidates: [{ content: { parts: [{ text: JSON.stringify(aiResult) }] } }] }); }
+    hiveApiKey: () => "test-key", hiveModel: () => "test-model",
+    fetchImpl: async (url, init) => { requests.push({ url, init, body: JSON.parse(init.body) }); return new Response(`data: ${JSON.stringify({ choices: [{ delta: { content: JSON.stringify(aiResult) } }] })}\n\ndata: [DONE]\n\n`, { headers: { "Content-Type": "text/event-stream" } }); }
   });
   const response = await handlers.analyze(post("https://phishlens.test/api/analyze", { hostname: "login-verify-example.test", signalCodes: ["http", "sample_blocklist"] }));
   const data = await response.json();
@@ -129,20 +129,21 @@ test("AI analysis accepts only hostname and signal codes and returns verified so
   assert.equal(data.community.status, "verified");
   assert.equal(data.community.demo, true);
   assert.deepEqual(data.ai, aiResult);
-  const modelInput = JSON.parse(requests[0].body.contents[0].parts[0].text);
+  const modelInput = JSON.parse(requests[0].body.messages[1].content);
   assert.deepEqual(modelInput.signalCodes, ["http", "sample_blocklist"]);
   assert.equal(modelInput.hostname, "login-verify-example.test");
   assert.equal(modelInput.signalDetails[0].code, "http");
   assert.equal(JSON.stringify(requests[0].body).includes("must-not-send"), false);
-  assert.equal(requests[0].url, "https://generativelanguage.googleapis.com/v1beta/models/test-model:generateContent");
-  assert.equal(requests[0].init.headers["x-goog-api-key"], "test-key");
-  assert.equal("temperature" in requests[0].body.generationConfig, false);
-  assert.equal("additionalProperties" in requests[0].body.generationConfig.responseSchema, false);
-  assert.deepEqual(requests[0].body.generationConfig.responseSchema.required, ["summary", "evidence", "nextSteps", "limitations"]);
+  assert.equal(requests[0].url, "https://api-cdn.thehive.ai/api/v3/chat/completions");
+  assert.equal(requests[0].init.headers.Authorization, "Bearer test-key");
+  assert.equal(requests[0].init.headers.Accept, "text/event-stream");
+  assert.equal(requests[0].body.model, "test-model");
+  assert.equal(requests[0].body.stream, true);
+  assert.equal(requests[0].body.reasoning_effort, "none");
 });
 
 test("AI analysis validates its small allowlisted payload and requires server configuration", async () => {
-  const handlers = createApiHandlers({ geminiApiKey: () => "" });
+  const handlers = createApiHandlers({ hiveApiKey: () => "" });
   assert.equal((await handlers.analyze(post("https://phishlens.test/api/analyze", { hostname: "https://x.test/a?secret=1", signalCodes: [] }))).status, 400);
   assert.equal((await handlers.analyze(post("https://phishlens.test/api/analyze", { hostname: "x.test", signalCodes: ["unknown"] }))).status, 400);
   assert.equal((await handlers.analyze(post("https://phishlens.test/api/analyze", { hostname: "x.test", signalCodes: [], url: "https://secret.test/" }))).status, 400);
@@ -150,9 +151,9 @@ test("AI analysis validates its small allowlisted payload and requires server co
 });
 
 test("AI analysis returns useful machine-readable errors for malformed output, provider failure and timeout", async () => {
-  const baseOptions = { geminiApiKey: () => "test-key", makeAdminClient: () => ({ from: () => ({ select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: null, error: null }; } }) }) };
+  const baseOptions = { hiveApiKey: () => "test-key", makeAdminClient: () => ({ from: () => ({ select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: null, error: null }; } }) }) };
   const body = { hostname: "example.test", signalCodes: [] };
-  const malformed = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ candidates: [{ content: { parts: [{ text: "not-json" }] } }] }) });
+  const malformed = createApiHandlers({ ...baseOptions, fetchImpl: async () => new Response(`data: ${JSON.stringify({ choices: [{ delta: { content: "not-json" } }] })}\n\ndata: [DONE]\n`) });
   const malformedResponse = await malformed.analyze(post("https://phishlens.test/api/analyze", body));
   assert.equal(malformedResponse.status, 502);
   assert.equal((await malformedResponse.json()).code, "AI_INVALID_OUTPUT");
@@ -163,18 +164,20 @@ test("AI analysis returns useful machine-readable errors for malformed output, p
   const limited = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({}, { status: 429 }) });
   const limitedResponse = await limited.analyze(post("https://phishlens.test/api/analyze", body));
   assert.equal(limitedResponse.status, 503);
-  assert.equal((await limitedResponse.json()).code, "GEMINI_RATE_LIMITED");
-  const unavailable = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ error: { status: "UNAVAILABLE", message: "High demand." } }, { status: 503 }) });
+  assert.equal((await limitedResponse.json()).code, "HIVE_RATE_LIMITED");
+  const unavailable = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ error: { code: "server_busy", message: "High demand." } }, { status: 503 }) });
   const unavailableResponse = await unavailable.analyze(post("https://phishlens.test/api/analyze", body));
   assert.equal(unavailableResponse.status, 503);
-  assert.equal((await unavailableResponse.json()).code, "GEMINI_UNAVAILABLE");
+  assert.equal((await unavailableResponse.json()).code, "HIVE_UNAVAILABLE");
   const denied = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({}, { status: 403 }) });
-  assert.equal((await (await denied.analyze(post("https://phishlens.test/api/analyze", body))).json()).code, "GEMINI_AUTH_FAILED");
+  assert.equal((await (await denied.analyze(post("https://phishlens.test/api/analyze", body))).json()).code, "HIVE_AUTH_FAILED");
   const rejected = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ error: { status: "INVALID_ARGUMENT", message: "Unsupported generation setting." } }, { status: 400 }) });
   const rejectedData = await (await rejected.analyze(post("https://phishlens.test/api/analyze", body))).json();
-  assert.equal(rejectedData.code, "GEMINI_REQUEST_INVALID");
+  assert.equal(rejectedData.code, "HIVE_REQUEST_INVALID");
   assert.equal(rejectedData.providerStatus, "INVALID_ARGUMENT");
   assert.match(rejectedData.providerMessage, /Unsupported generation setting/);
+  const noBalance = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ status_code: 405, message: "Organization paused" }, { status: 405 }) });
+  assert.equal((await (await noBalance.analyze(post("https://phishlens.test/api/analyze", body))).json()).code, "HIVE_BALANCE_REQUIRED");
   const timeout = createApiHandlers({ ...baseOptions, fetchImpl: async () => { throw Object.assign(new Error("timeout"), { name: "TimeoutError" }); } });
   const timeoutResponse = await timeout.analyze(post("https://phishlens.test/api/analyze", body));
   assert.equal(timeoutResponse.status, 504);
