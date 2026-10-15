@@ -66,7 +66,7 @@ function publicReport(row) {
 }
 function adminEmailAllowed(email) { return Boolean(email) && allowedAdminEmails().has(email.toLowerCase()); }
 
-async function getAdmin(request, makePublicClient = publicSupabase, isAllowedAdmin = adminEmailAllowed) {
+export async function getAdmin(request, makePublicClient = publicSupabase, isAllowedAdmin = adminEmailAllowed) {
   const token = getBearer(request);
   if (!token) throw Object.assign(new Error("Cần đăng nhập quản trị."), { status: 401 });
   const authClient = makePublicClient();

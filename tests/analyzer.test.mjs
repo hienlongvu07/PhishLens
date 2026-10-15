@@ -77,7 +77,7 @@ test("risk score weights and band boundaries are explicit and capped", () => {
 test("popup asks before AI fetch and constructs a hostname plus signal-code payload", async () => {
   const popup = await readFile(new URL("../popup.js", import.meta.url), "utf8");
   const handler = popup.slice(popup.indexOf('$("#ai-analyze").addEventListener'), popup.indexOf('$("#report").addEventListener'));
-  assert.ok(handler.indexOf("window.confirm") < handler.indexOf("/api/analyze"));
+  assert.ok(handler.indexOf("requestAiConsent(hostname)") < handler.indexOf("/api/analyze"));
   assert.match(handler, /if \(!approved\) return/);
   assert.match(handler, /JSON\.stringify\(\{ hostname, signalCodes \}\)/);
   assert.doesNotMatch(handler, /currentUrl|\.pathname|\.search|\.hash|\.cookie|innerText/);

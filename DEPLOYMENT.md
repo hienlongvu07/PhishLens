@@ -62,3 +62,36 @@ Lệnh dev dùng Vercel CLI. Thêm `CRON_SECRET` vào biến môi trường loca
 - Dashboard cần tài khoản Supabase Auth có email nằm trong `ADMIN_EMAILS`.
 - Báo cáo chỉ được công khai sau khi quản trị viên xác minh với nguồn HTTPS đáng tin cậy.
 - Kết quả “chưa có dữ liệu” không có nghĩa website an toàn.
+# PhishLens Community operations
+
+## Setup
+
+1. Run `supabase/migrations/202610150001_community_activities.sql` once on the existing Supabase project.
+2. Configure these Vercel variables for Production (and Preview if used):
+   - `TURNSTILE_SITE_KEY`: public Cloudflare Turnstile site key.
+   - `TURNSTILE_SECRET_KEY`: server-only Turnstile secret.
+   - `COMMUNITY_SIGNING_SECRET`: random secret with at least 32 characters for Challenge attempt tokens.
+   - `EXTENSION_PUBLIC_URL`: optional; set only after a real public Chrome Web Store or ZIP installation link exists. Leave unset to hide extension testing.
+3. Add the deployed website hostname to the Turnstile widget. Keep it aligned with `PHISHLENS_SITE_URL`.
+4. Deploy again. Missing Turnstile/signing configuration blocks Challenge starts and Beta submissions; verification is never skipped.
+5. Configure Vercel Firewall rate limits for `/api/community/*` and `/api/admin/community/*`.
+
+## Pages and endpoints
+
+- `/community.html`: hub and aggregate activity counts.
+- `/challenge.html`: randomized 10-question activity, scored server-side.
+- `/beta.html`: working-feature checklist and anonymous feedback.
+- `/campaign.html`: #DungClickVoi campaign, sharing controls, and on-device QR.
+- `/community-admin.html`: questions, Beta feedback, events and evidence-backed outside metrics; uses the existing Supabase admin account.
+- Public API: `GET /api/community/config`, `GET /api/community/stats`, `POST /api/community/events`, `POST /api/community/challenge/start`, `POST /api/community/challenge/complete`, `POST /api/community/beta`.
+- Admin API: `GET /api/admin/community?view=overview|questions|feedback|events|metrics`, `POST /api/admin/community/questions`, `PATCH /api/admin/community/questions/:id`, `PATCH /api/admin/community/feedback/:id`, `POST /api/admin/community/metrics`, `GET /api/admin/community/export`.
+
+Counts are recorded events, not unique people. Campaign statistics use no cookies or browser identifiers. Social platform metrics appear only after an admin enters a value and evidence URL. Challenge snapshots are retained for the attempt; individual answer selections and identities are not stored. Activity and Beta feedback are removed by the existing daily retention cron after 12 months.
+
+QR codes use the locally vendored `qrcode-generator` module at `web/vendor/qrcode.mjs`; URL data is encoded on the visitor's device and is not sent to an external QR provider. Web Share and clipboard are counted as successful only after the browser operation resolves. Facebook share clicks are counted as clicks because PhishLens cannot verify publication.
+
+## Privacy and abuse controls
+
+The Content Security Policy permits Turnstile resources from `challenges.cloudflare.com`. Turnstile is verified server-side both when starting a Challenge and submitting Beta feedback. Vercel Firewall must provide request rate limits; the application does not create cookies or store IP addresses for activity analytics. See `/privacy.html` for the user-facing data description.
+
+Before publishing the extension, review `CHROME_WEB_STORE_DATA.md` against the exact extension package and the current Chrome Web Store data-use questionnaire.

@@ -11,7 +11,8 @@
     "build:extension": "node scripts/build-extension.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.117.3"
+    "@supabase/supabase-js": "^2.117.3",
+    "qrcode-generator": "^2.0.4"
   },
   "devDependencies": {
     "archiver": "^8.0.0",

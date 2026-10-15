@@ -41,8 +41,21 @@
       <div id="community-result" class="community-result hidden"></div>
       <section id="ai-result" class="ai-result hidden" aria-label="Giải thích từ AI"></section>
     </section>    <div class="report-area"><label class="report-type-label" for="report-type">Loại nghi ngờ</label><select id="report-type"><option value="Liên kết rút gọn/website/tệp lạ">Liên kết rút gọn/website/tệp lạ</option><option value="Giả mạo ngân hàng/tổ chức">Giả mạo ngân hàng/tổ chức</option><option value="Lừa lấy mật khẩu hoặc OTP">Lừa lấy mật khẩu hoặc OTP</option><option value="Giả mạo cơ quan/dịch vụ công">Giả mạo cơ quan/dịch vụ công</option><option value="Tuyển dụng/việc làm giả">Tuyển dụng/việc làm giả</option><option value="Quà tặng/khuyến mãi">Quà tặng/khuyến mãi</option><option value="Đầu tư/vay đáng ngờ">Đầu tư/vay đáng ngờ</option><option value="Khác">Khác</option></select><button id="report" class="report" disabled>Gửi báo cáo đến website PhishLens</button><p id="report-status" class="report-status">URL chỉ được gửi sau khi bạn xem trước và xác nhận.</p></div>
-<footer><span>PhishLens không thể phát hiện mọi website lừa đảo.</span><a id="privacy-link" class="privacy-link" target="_blank" rel="noopener noreferrer">Quyền riêng tư</a><button id="settings" class="settings" title="Mở website PhishLens">↗</button></footer>
+<nav class="community-links" aria-label="Hoạt động PhishLens"><a id="community-link" target="_blank" rel="noopener noreferrer">Cộng đồng</a><a id="challenge-link" target="_blank" rel="noopener noreferrer">Challenge</a><a id="beta-link" target="_blank" rel="noopener noreferrer">Beta</a><a id="campaign-link" target="_blank" rel="noopener noreferrer">#DungClickVoi</a></nav><footer><span>PhishLens không thể phát hiện mọi website lừa đảo.</span><a id="privacy-link" class="privacy-link" target="_blank" rel="noopener noreferrer">Quyền riêng tư</a><button id="settings" class="settings" title="Mở website PhishLens">↗</button></footer>
   </main>
+  <dialog id="ai-consent-dialog" class="consent-dialog" aria-labelledby="ai-consent-title" aria-describedby="ai-consent-description">
+    <form method="dialog">
+      <p class="consent-eyebrow">PHISHLENS · GIẢI THÍCH BỔ SUNG</p>
+      <h2 id="ai-consent-title">Gửi dấu hiệu để được giải thích?</h2>
+      <p id="ai-consent-description">PhishLens sẽ gửi tên miền và các dấu hiệu đã phát hiện đến máy chủ PhishLens. Máy chủ chuyển thông tin này tới Hive để tạo phần giải thích bằng AI.</p>
+      <div class="consent-domain"><span>Website đang kiểm tra</span><strong id="consent-domain"></strong></div>
+      <p class="consent-privacy">Không gửi phần đường dẫn, nội dung sau dấu ? hoặc #, thông tin đăng nhập, cookie hay nội dung trang. Kết quả chỉ mang tính tham khảo và không quyết định điểm rủi ro.</p>
+      <div class="consent-actions">
+        <button id="ai-consent-cancel" class="consent-cancel" value="cancel" autofocus>Để sau</button>
+        <button id="ai-consent-approve" class="consent-approve" value="approve">Tiếp tục</button>
+      </div>
+    </form>
+  </dialog>
   <script type="module" src="popup.js"></script>
 </body>
 </html>

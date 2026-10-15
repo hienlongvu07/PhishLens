@@ -11,6 +11,6 @@ export const GET = async (request) => {
     console.error("PhishLens retention cleanup failed:", error);
     return Response.json({ error: "Cleanup failed" }, { status: 500 });
   }
-  console.log(`PhishLens retention cleanup removed ${data} expired report(s).`);
-  return Response.json({ ok: true, deleted: data });
+  console.log(`PhishLens retention cleanup removed ${data} expired database records.`);
+  return Response.json({ ok: true, deletedRecords: data });
 };

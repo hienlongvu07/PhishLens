@@ -151,12 +151,25 @@ document.querySelectorAll(".tab").forEach((button) => button.addEventListener("c
 $("#settings").addEventListener("click", () => chrome.tabs.create({ url: API_BASE }));
 $("#guide-link").href = `${API_BASE}/#cam-nang`;
 $("#privacy-link").href = `${API_BASE}/privacy.html`;
+for (const [id, path] of [["#community-link", "/community.html"], ["#challenge-link", "/challenge.html"], ["#beta-link", "/beta.html"], ["#campaign-link", "/campaign.html"]]) {
+  const link = $(id); link.href = `${API_BASE}${path}`;
+  link.addEventListener("click", (event) => { event.preventDefault(); chrome.tabs.create({ url: link.href }); });
+}
+
+function requestAiConsent(hostname) {
+  const dialog = $("#ai-consent-dialog");
+  $("#consent-domain").textContent = hostname;
+  dialog.showModal();
+  return new Promise((resolve) => {
+    dialog.addEventListener("close", () => resolve(dialog.returnValue === "approve"), { once: true });
+  });
+}
 
 $("#ai-analyze").addEventListener("click", async () => {
   if (!currentAnalysis?.valid) return;
   const hostname = currentAnalysis.canonicalHostname;
   const signalCodes = [...new Set(currentAnalysis.signals.map(({ code }) => code))];
-  const approved = window.confirm(`PHÂN TÍCH VỚI AI\n\nGửi hostname và mã dấu hiệu tới PhishLens (${API_BASE}); máy chủ chuyển chúng tới Hive để dùng model DeepSeek.\n\nHostname: ${hostname}\nDấu hiệu: ${signalCodes.length ? signalCodes.join(", ") : "không có"}\n\nKhông gửi đường dẫn, query, fragment, thông tin đăng nhập, cookie hay nội dung trang. Hive xử lý yêu cầu theo chính sách của họ. AI chỉ giải thích, không quyết định điểm. Tiếp tục?`);
+  const approved = await requestAiConsent(hostname);
   if (!approved) return;
 
   const button = $("#ai-analyze");

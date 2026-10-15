@@ -123,3 +123,7 @@ Test API dùng Supabase giả lập để kiểm tra xác thực đầu vào, gi
 PhishLens không quét trang, không xác minh danh tính chủ website, không tự chặn điều hướng và có thể cảnh báo sai hoặc bỏ sót. HTTPS mã hóa kết nối nhưng không chứng minh website thuộc tổ chức mà trang tự nhận. Dữ liệu cộng đồng do admin xác minh và nội dung demo cần được phân biệt rõ.
 
 Khảo sát nhóm 120 người dùng để giải thích thiết kế: 54 người (45%) chưa biết dấu hiệu liên kết đáng ngờ; 94 (78,3%) chưa tự tin đánh giá tên miền; 86 (71,7%) chưa rõ HTTPS có chứng minh website an toàn không. Có 46 người muốn được nhắc không chia sẻ mật khẩu/OTP, 44 muốn xác minh qua kênh chính thức, 40 muốn tra cứu uy tín tên miền. Đây là ý kiến tự báo cáo và nhu cầu, không phải bằng chứng về độ chính xác của PhishLens.
+
+# PhishLens Community
+
+The Community hub, 10-question Challenge, Beta Testing, and #DungClickVoi campaign share the existing Supabase and Vercel project. Before enabling them, run `supabase/migrations/202610150001_community_activities.sql` and set `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, and `COMMUNITY_SIGNING_SECRET` in Vercel. `EXTENSION_PUBLIC_URL` is optional and should be set only when a real public install link is available. Full setup, endpoints, CSP, privacy, and retention details are in `DEPLOYMENT.md`. Manage activities at `/community-admin.html` with the existing admin account. Review `CHROME_WEB_STORE_DATA.md` before publishing the extension.
