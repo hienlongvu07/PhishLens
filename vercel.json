@@ -1,6 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "web",
+  "rewrites": [
+    { "source": "/api/community/:path*", "destination": "/api/community-router?route=:path*" },
+    { "source": "/api/admin/community", "destination": "/api/community-router?route=admin" },
+    { "source": "/api/admin/community/:path*", "destination": "/api/community-router?route=admin/:path*" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
