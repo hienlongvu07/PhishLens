@@ -10,13 +10,13 @@ Nút **Nhờ AI phân tích thêm** chỉ chạy sau xác nhận riêng. Extensi
 
 API mới: `POST /api/analyze` với `{ "hostname": "example.com", "signalCodes": ["http"] }`. Không gửi URL hoặc trường khác. Lời giải thích không được lưu vào Supabase. Hive nhận hostname, mã dấu hiệu và cảnh báo PhishLens đã xác minh (nếu có), rồi phục vụ model DeepSeek. Xem [tài liệu Hive](https://docs.thehive.ai/docs/chat-completions-openai-compatible-llms) và [hướng dẫn triển khai](DEPLOYMENT.md) trước khi bật cho người dùng thật.
 
-## Điểm rủi ro PhishLens và kiểm tra thủ công
+## Điểm an toàn PhishLens và danh sách phishing
 
-Popup hiển thị điểm rủi ro theo quy tắc 0–100, không phải phần trăm xác suất website lừa đảo. Điểm được cộng minh bạch theo tín hiệu: giả thương hiệu/ký tự gây nhầm lẫn/địa chỉ IP/dấu @ +25; danh sách mẫu +30; HTTP/cổng lạ/rút gọn +12; tên miền dài/nhiều cấp/gạch nối/đường dẫn mã hóa/từ khóa +5 mỗi dấu hiệu; tổng tối đa 100. Dải điểm: 0–24 ít dấu hiệu được phát hiện, 25–59 cần kiểm tra thêm, 60–100 nhiều dấu hiệu đáng ngờ. Điểm thấp không có nghĩa website an toàn.
+Popup hiển thị **điểm an toàn PhishLens** 0–100, tính bằng 100 trừ tổng điểm rủi ro quy tắc. Dấu @, địa chỉ IP, lỗi đánh máy giống thương hiệu và tên miền trộn hệ chữ trừ 25 điểm; HTTP, cổng lạ và rút gọn liên kết trừ 12; tên miền dài/nhiều cấp, gạch nối, đường dẫn mã hóa và từ khóa trừ 5 mỗi dấu hiệu. Một tên miền Unicode trùng mẫu thương hiệu sau so sánh UTS #39 trừ thêm 60 điểm. Feed phishing khớp trừ thêm 80 điểm. Điểm không phải xác suất lừa đảo hay chứng nhận an toàn.
 
-Điểm 0–100 là **điểm rủi ro PhishLens**, không phải điểm ScamAdviser, xác suất lừa đảo hay phần trăm an toàn. Điểm được cộng minh bạch theo tín hiệu: giả thương hiệu/ký tự gây nhầm lẫn/địa chỉ IP/dấu @ +25; danh sách mẫu +30; HTTP/cổng lạ/rút gọn +12; tên miền dài/nhiều cấp/gạch nối/đường dẫn mã hóa/từ khóa +5 mỗi dấu hiệu; tổng tối đa 100. Điểm thấp không có nghĩa website an toàn.
+Extension đối chiếu hostname trên thiết bị với feed domain ACTIVE của [Phishing.Database](https://github.com/Phishing-Database/Phishing.Database); khớp feed trừ thêm 80 điểm. Không gửi hostname hay URL để tra cứu feed. Feed tĩnh được lưu trong IndexedDB và làm mới mỗi 12 giờ; nếu tải mới thất bại, bản đã lưu vẫn được dùng. Kết quả không khớp hoặc feed không sẵn sàng không chứng minh an toàn. Feed và giấy phép được phân phối trong `web/data/`; ánh xạ ký tự lấy từ [Unicode UTS #39](https://www.unicode.org/reports/tr39/).
 
-Điểm 0–100 là điểm rủi ro PhishLens dựa trên các tín hiệu URL minh bạch; đây không phải xác suất lừa đảo, điểm ScamAdviser hay kết luận website an toàn. Extension không tự gửi URL tới dịch vụ bên thứ ba. Các liên kết Scam.vn và ScamAdviser chỉ mở trang kiểm tra để bạn tự nhập tên miền; PhishLens không nhận kết quả. Không cần API key hoặc biến môi trường cho tính năng này. Xem [hướng dẫn triển khai](DEPLOYMENT.md).
+Trước khi triển khai feed mới, chạy `npm run update:threat-data`; script tải danh sách ACTIVE và ánh xạ Unicode chính thức, kiểm tra dữ liệu rồi tạo feed gzip cùng metadata/attribution tĩnh. Vercel phục vụ các tệp từ `web/data/`, không thêm Serverless Function. Xem [hướng dẫn triển khai](DEPLOYMENT.md). Các liên kết Scam.vn và ScamAdviser vẫn là tra cứu thủ công độc lập.
 
 
 ## Cấu trúc
@@ -118,7 +118,7 @@ Test API dùng Supabase giả lập để kiểm tra xác thực đầu vào, gi
 
 ## Mẫu và giới hạn
 
-`login-verify-example.test` và các quy tắc/tên thương hiệu trong `src/analyzer.js` là dữ liệu demo nhỏ do dự án khai báo, không phải threat feed hay danh sách cảnh báo toàn diện. Có thể thêm thương hiệu/domain mẫu tại các hằng `SAMPLE_BRANDS`, `SHORTENER_DOMAINS`, `SAMPLE_SUSPICIOUS_DOMAINS`; cập nhật test tương ứng. Không đưa hostname thật vào danh sách cảnh báo nếu chưa có nguồn và quy trình xác minh phù hợp.
+Danh sách thương hiệu trong `src/analyzer.js` chỉ là nhóm mẫu nhỏ cho kiểm tra tên gần giống, không đại diện mọi thương hiệu. Danh sách hostname phishing lấy riêng từ feed ACTIVE có nguồn trong `web/data/` và được cập nhật bằng `npm run update:threat-data`; không thêm hostname vào feed thủ công.
 
 PhishLens không quét trang, không xác minh danh tính chủ website, không tự chặn điều hướng và có thể cảnh báo sai hoặc bỏ sót. HTTPS mã hóa kết nối nhưng không chứng minh website thuộc tổ chức mà trang tự nhận. Dữ liệu cộng đồng do admin xác minh và nội dung demo cần được phân biệt rõ.
 

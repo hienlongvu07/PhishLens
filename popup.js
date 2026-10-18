@@ -1,7 +1,10 @@
-import { analyzeUrl } from "./src/analyzer.js";
+import { analyzeUrl, applyThreatFeed, hostnameMatchesThreatFeed } from "./src/analyzer.js";
 
 const $ = (selector) => document.querySelector(selector);
 const API_BASE = chrome.runtime.getManifest().host_permissions[0].replace(/\/\*$/, "");
+const FEED_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+const FEED_DB_NAME = "phishlens-threat-feed";
+const FEED_DB_VERSION = 1;
 let currentUrl = "";
 let currentAnalysis = null;
 const miniGuide = [
@@ -34,8 +37,8 @@ function renderParts(parts) {
 }
 
 const SIGNAL_LABELS = {
-  credentials_at: "Có dấu @ hoặc thông tin trước @", unicode_or_punycode: "Ký tự Unicode/punycode", lookalike_brand: "Tên gần giống thương hiệu mẫu", ip_address: "Dùng địa chỉ IP",
-  sample_blocklist: "Khớp danh sách ví dụ của PhishLens", http: "Kết nối HTTP", suspicious_port: "Cổng không thường gặp", shortener: "Dịch vụ rút gọn liên kết",
+  credentials_at: "Có dấu @ hoặc thông tin trước @", unicode_or_punycode: "Tên miền trộn hệ chữ", lookalike_brand: "Tên miền giống thương hiệu mẫu", ip_address: "Dùng địa chỉ IP",
+  threat_feed: "Có trong danh sách phishing Phishing.Database", http: "Kết nối HTTP", suspicious_port: "Cổng không thường gặp", shortener: "Dịch vụ rút gọn liên kết",
   many_subdomains: "Tên miền có nhiều cấp", long_hostname: "Tên miền dài", encoded_path: "Đường dẫn có ký tự mã hóa", hyphenated_hostname: "Tên miền có gạch nối", suspicious_keyword: "Có từ khóa cần chú ý"
 };
 
@@ -43,23 +46,106 @@ function renderScore(result) {
   const card = $("#risk-score-card");
   if (!result.valid) { card.classList.add("hidden"); $("#score-breakdown").classList.add("hidden"); return; }
   card.classList.remove("hidden");
-  $("#risk-score").textContent = String(result.riskScore);
+  $("#safety-score").textContent = String(result.safetyScore);
   const track = $(".score-track");
-  track.setAttribute("aria-valuenow", String(result.riskScore));
-  $("#score-fill").style.width = `${result.riskScore}%`;
+  track.setAttribute("aria-valuenow", String(result.safetyScore));
+  $("#score-fill").style.width = `${result.safetyScore}%`;
   card.dataset.band = result.band;
+  $("#threat-feed-status").textContent = feedStatusText(result);
   const breakdown = $("#score-breakdown");
   breakdown.replaceChildren();
   if (!result.scoreBreakdown.length) { breakdown.classList.add("hidden"); return; }
-  const title = document.createElement("b"); title.textContent = "Điểm đóng góp theo dấu hiệu";
+  const title = document.createElement("b"); title.textContent = "Điểm trừ theo dấu hiệu";
   const list = document.createElement("ul");
   for (const item of result.scoreBreakdown) {
     const row = document.createElement("li");
     const label = document.createElement("span"); label.textContent = SIGNAL_LABELS[item.code] || item.code;
-    const points = document.createElement("b"); points.textContent = `+${item.points}`;
+    const points = document.createElement("b"); points.textContent = `−${item.points}`;
     row.append(label, points); list.append(row);
   }
   breakdown.append(title, list); breakdown.classList.remove("hidden");
+}
+
+function feedStatusText(result) {
+  const updated = result.feedUpdatedAt ? new Date(result.feedUpdatedAt).toLocaleDateString("vi-VN") : "";
+  if (result.feedStatus === "match") return `Có trong danh sách phishing của Phishing.Database${updated ? ` · cập nhật ${updated}` : ""}.`;
+  if (result.feedStatus === "not-found") return `Không tìm thấy trong danh sách Phishing.Database${updated ? ` · cập nhật ${updated}` : ""}; điều này không bảo đảm an toàn.`;
+  if (result.feedStatus === "stale-match") return `Có trong danh sách Phishing.Database đã lưu${updated ? ` · cập nhật ${updated}` : ""}.`;
+  if (result.feedStatus === "stale-not-found") return `Chưa tìm thấy trong danh sách Phishing.Database đã lưu${updated ? ` · cập nhật ${updated}` : ""}; dữ liệu có thể cũ.`;
+  if (result.feedStatus === "unavailable") return "Chưa đối chiếu được danh sách phishing; điểm cục bộ vẫn được giữ.";
+  return "Đang đối chiếu danh sách cảnh báo…";
+}
+
+function openFeedDatabase() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(FEED_DB_NAME, FEED_DB_VERSION);
+    request.onupgradeneeded = () => request.result.createObjectStore("cache");
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function readFeedCache() {
+  const db = await openFeedDatabase();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction("cache", "readonly").objectStore("cache").get("active-domains");
+    request.onsuccess = () => { db.close(); resolve(request.result || null); };
+    request.onerror = () => { db.close(); reject(request.error); };
+  });
+}
+
+async function writeFeedCache(value) {
+  const db = await openFeedDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction("cache", "readwrite");
+    transaction.objectStore("cache").put(value, "active-domains");
+    transaction.oncomplete = () => { db.close(); resolve(); };
+    transaction.onerror = () => { db.close(); reject(transaction.error); };
+  });
+}
+
+async function downloadFeed() {
+  const options = { cache: "no-store", credentials: "omit", referrerPolicy: "no-referrer", signal: AbortSignal.timeout(30_000) };
+  const [metadataResponse, feedResponse] = await Promise.all([
+    fetch(`${API_BASE}/data/phishing-domains.json`, options),
+    fetch(`${API_BASE}/data/phishing-domains.gzdata`, options)
+  ]);
+  if (!metadataResponse.ok || !feedResponse.ok) throw new Error("feed unavailable");
+  const metadata = await metadataResponse.json();
+  const compressed = await feedResponse.arrayBuffer();
+  if (!metadata?.updatedAt || !Number.isFinite(metadata.domainCount) || compressed.byteLength < 100_000) throw new Error("invalid feed");
+  if (globalThis.crypto?.subtle) {
+    const digest = await globalThis.crypto.subtle.digest("SHA-256", compressed);
+    const checksum = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+    if (checksum !== metadata.sha256) throw new Error("feed checksum mismatch");
+  }
+  if (typeof DecompressionStream !== "function") throw new Error("gzip unsupported");
+  const decompressed = new Response(new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip")));
+  const text = await decompressed.text();
+  const domains = text.split(/\r?\n/).filter(Boolean);
+  if (domains.length < 10_000 || domains.length !== metadata.domainCount) throw new Error("invalid feed contents");
+  return { domains, updatedAt: metadata.updatedAt, fetchedAt: Date.now() };
+}
+
+async function lookupThreatFeed(hostname) {
+  let cached = null;
+  try { cached = await readFeedCache(); } catch { /* Continue with a network lookup. */ }
+  try {
+    let current = cached;
+    const cacheFresh = Boolean(current && Date.now() - current.fetchedAt <= FEED_MAX_AGE_MS);
+    if (!cacheFresh) {
+      current = await downloadFeed();
+      try { await writeFeedCache(current); } catch { /* This popup can still use the freshly downloaded feed. */ }
+    }
+    const matched = hostnameMatchesThreatFeed(hostname, current.domains);
+    return { status: matched ? "match" : "not-found", matched, updatedAt: current.updatedAt };
+  } catch {
+    if (cached?.domains?.length) {
+      const matched = hostnameMatchesThreatFeed(hostname, cached.domains);
+      return { status: matched ? "stale-match" : "stale-not-found", matched, updatedAt: cached.updatedAt };
+    }
+    return { status: "unavailable", matched: false };
+  }
 }
 
 async function readAiResponse(response) {
@@ -76,11 +162,11 @@ async function readAiResponse(response) {
 async function init() {
   const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   currentUrl = tab?.url || "";
-  const result = analyzeUrl(currentUrl);
+  let result = analyzeUrl(currentUrl);
   currentAnalysis = result;
   $("#domain").textContent = result.valid ? result.hostname : "Trang này chưa hỗ trợ kiểm tra";
   $("#level").textContent = result.level;
-  $("#level").className = `level ${result.band === "high" ? "risk" : result.band === "caution" ? "caution" : "clear"}`;
+  $("#level").className = `level ${result.band}`;
   $("#summary").textContent = result.valid ? `${result.findings.length} dấu hiệu cần chú ý` : "Trang này chưa thể kiểm tra. Hãy mở một website có địa chỉ bắt đầu bằng http:// hoặc https://.";
   $("#finding-count").textContent = String(result.findings.length);
   renderList($("#findings"), result.findings);
@@ -93,6 +179,19 @@ async function init() {
     ? "Tên miền và dấu hiệu chỉ được gửi khi bạn chọn tiếp tục."
     : "Mở một website để xem kết quả kiểm tra.";
   $("#report").textContent = "Gửi báo cáo đến website PhishLens";
+
+  if (result.valid) {
+    lookupThreatFeed(result.canonicalHostname).then((status) => {
+      result = applyThreatFeed(result, status);
+      currentAnalysis = result;
+      $("#level").textContent = result.level;
+      $("#level").className = `level ${result.band}`;
+      $("#finding-count").textContent = String(result.findings.length);
+      renderList($("#findings"), result.findings);
+      $("#no-findings").classList.toggle("hidden", result.findings.length > 0);
+      renderScore(result);
+    });
+  }
 }
 
 document.querySelectorAll(".tab").forEach((button) => button.addEventListener("click", () => {
@@ -172,7 +271,7 @@ $("#ai-analyze").addEventListener("click", async () => {
       for (const value of values) { const item = document.createElement("li"); item.textContent = value; list.append(item); }
       result.append(label, list);
     }
-    const limits = document.createElement("p"); limits.className = "ai-limitation"; limits.textContent = `Lưu ý: ${data.ai.limitations} Điểm rủi ro phía trên không thay đổi.`;
+    const limits = document.createElement("p"); limits.className = "ai-limitation"; limits.textContent = `Lưu ý: ${data.ai.limitations} Điểm an toàn phía trên không thay đổi.`;
     result.append(limits);
     result.classList.remove("hidden");
     status.textContent = "Phần giải thích chỉ để tham khảo; hãy tự xác minh qua kênh chính thức.";

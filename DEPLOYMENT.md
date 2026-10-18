@@ -42,7 +42,7 @@ npm.cmd install
 npm.cmd run build:extension -- --site-url=https://<ten-project>.vercel.app
 ```
 
-Lệnh tạo `dist/extension/` để cài thử bằng Developer mode và `dist/phishlens-extension.zip` để nộp lên Chrome Web Store. Nếu đổi domain sau này, build và phát hành phiên bản extension mới.
+Trước khi cập nhật dữ liệu phishing trên website, chạy `npm.cmd run update:threat-data`, commit các tệp mới trong `web/data/` cùng giấy phép/ghi nguồn và `src/uts39-confusables.js`, rồi triển khai website. Đây là các tệp tĩnh, không tạo Vercel Function. Chỉ sau khi thay đổi extension, build như lệnh trên; lệnh tạo `dist/extension/` để cài thử bằng Developer mode và `dist/phishlens-extension.zip` để nộp lên Chrome Web Store. Nếu đổi domain sau này, build và phát hành phiên bản extension mới.
 
 ## Chạy local
 

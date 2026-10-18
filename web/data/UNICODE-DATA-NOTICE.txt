@@ -1,0 +1,1 @@
+Unicode Security Mechanisms (UTS #39), confusables.txt, version 18.0.0. Copyright © 2026 Unicode, Inc. Data source: https://www.unicode.org/Public/18.0.0/security/confusables.txt. Terms of use: https://www.unicode.org/terms_of_use.html. Comparison mappings are used only to identify possible visual confusability; they are not used to normalize or display domain names.

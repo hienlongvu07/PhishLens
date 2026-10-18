@@ -14,10 +14,12 @@
       <p id="level" class="level">Đang phân tích…</p>
       <p id="domain" class="domain">Đang đọc trang hiện tại…</p>
       <p id="summary" class="summary"></p>
-      <div id="risk-score-card" class="risk-score hidden" aria-label="Điểm rủi ro theo quy tắc">
-        <div class="score-total"><strong id="risk-score">—</strong><span>/100 · điểm rủi ro</span></div>
-        <div class="score-track" role="progressbar" aria-label="Điểm rủi ro theo quy tắc" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="score-fill"></span></div>
-        <p>Điểm dựa trên dấu hiệu của địa chỉ. Điểm thấp không chứng minh website an toàn.</p>
+      <div id="risk-score-card" class="safety-score hidden" aria-label="Điểm an toàn PhishLens">
+        <div class="score-total"><strong id="safety-score">—</strong><span>/100 · điểm an toàn</span></div>
+        <div class="score-track" role="progressbar" aria-label="Điểm an toàn PhishLens" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="score-fill"></span></div>
+        <p>Điểm dựa trên dấu hiệu đã phát hiện; không bảo đảm website an toàn.</p>
+        <p id="threat-feed-status" class="threat-feed-status" role="status" aria-live="polite">Đang đối chiếu danh sách cảnh báo…</p>
+        <p>Nguồn: <a href="https://github.com/Phishing-Database/Phishing.Database" target="_blank" rel="noopener noreferrer">Phishing.Database</a>. Chỉ hostname được so sánh trên thiết bị.</p>
       </div>
       <section id="manual-check-area" class="reputation-area" aria-label="Kiểm tra thủ công tại nguồn độc lập">
         <div class="reputation-heading"><b>Muốn đối chiếu thêm?</b></div>
@@ -46,7 +48,7 @@
     <form method="dialog">
       <p class="consent-eyebrow">GIẢI THÍCH BỔ SUNG</p>
       <h2 id="ai-consent-title">Bạn muốn xem giải thích từ AI?</h2>
-      <p id="ai-consent-description">PhishLens sẽ chuyển tên miền và các dấu hiệu tìm thấy tới đối tác xử lý AI (Hive) để tạo phần giải thích. Nếu đã có cảnh báo PhishLens xác minh cho tên miền này, thông tin cảnh báo cũng được chuyển kèm. Việc này không làm thay đổi điểm rủi ro.</p>
+      <p id="ai-consent-description">PhishLens sẽ chuyển tên miền và các dấu hiệu tìm thấy tới đối tác xử lý AI (Hive) để tạo phần giải thích. Nếu đã có cảnh báo PhishLens xác minh cho tên miền này, thông tin cảnh báo cũng được chuyển kèm. Việc này không làm thay đổi điểm đánh giá.</p>
       <div class="consent-domain"><span>Website đang kiểm tra</span><strong id="consent-domain"></strong></div>
       <p class="consent-privacy">Không gửi đường dẫn đầy đủ, thông tin sau dấu ? hoặc #, thông tin đăng nhập, cookie hay nội dung trang. Phần giải thích chỉ mang tính tham khảo.</p>
       <div class="consent-actions">

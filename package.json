@@ -8,7 +8,8 @@
   "scripts": {
     "test": "node --test",
     "dev": "vercel dev",
-    "build:extension": "node scripts/build-extension.mjs"
+    "build:extension": "node scripts/build-extension.mjs",
+    "update:threat-data": "node scripts/update-threat-data.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",

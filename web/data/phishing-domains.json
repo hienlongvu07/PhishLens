@@ -1,0 +1,8 @@
+{
+  "source": "Phishing.Database",
+  "sourceUrl": "https://github.com/Phishing-Database/Phishing.Database",
+  "file": "phishing-domains-ACTIVE.txt",
+  "updatedAt": "2026-10-18T08:53:27.444Z",
+  "domainCount": 391347,
+  "sha256": "4f2d926e048ed0520ecf6d86d1dc3282bb75c03f5a4faa234307582fc5754b1d"
+}

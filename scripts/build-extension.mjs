@@ -20,13 +20,16 @@ const extensionDir = resolve(output, "extension");
 await rm(extensionDir, { recursive: true, force: true });
 await mkdir(extensionDir, { recursive: true });
 await cp(resolve(root, "icons"), resolve(extensionDir, "icons"), { recursive: true });
+await mkdir(resolve(extensionDir, "licenses"), { recursive: true });
+await copyFile(resolve(root, "web/data/UNICODE-DATA-NOTICE.txt"), resolve(extensionDir, "licenses/UNICODE-DATA-NOTICE.txt"));
 const manifest = JSON.parse(await readFile(resolve(root, "manifest.json"), "utf8"));
 manifest.host_permissions = [`${parsed.origin}/*`];
-manifest.description = "Giải thích dấu hiệu đáng chú ý trong URL và hỗ trợ gửi báo cáo sau khi bạn xác nhận.";
+manifest.description = "Hiển thị điểm an toàn và giải thích dấu hiệu đáng chú ý trong liên kết.";
 await writeFile(resolve(extensionDir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
 for (const file of ["popup.html", "popup.css", "popup.js"]) await copyFile(resolve(root, file), resolve(extensionDir, file));
 await mkdir(resolve(extensionDir, "src"), { recursive: true });
 await copyFile(resolve(root, "src/analyzer.js"), resolve(extensionDir, "src/analyzer.js"));
+await copyFile(resolve(root, "src/uts39-confusables.js"), resolve(extensionDir, "src/uts39-confusables.js"));
 
 const zipPath = resolve(output, "phishlens-extension.zip");
 await mkdir(dirname(zipPath), { recursive: true });
