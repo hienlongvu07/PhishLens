@@ -9,6 +9,7 @@ const events = new Set(["campaign_view", "challenge_click", "beta_click", "produ
 const betaStatuses = new Set(["Mới", "Đang xem xét", "Đã xử lý"]);
 const betaCategories = new Set(["Chưa phân loại", "Lỗi", "Giao diện", "Nội dung", "Tốc độ", "Tính năng", "Khác"]);
 const MAX_AGE_MS = 2 * 60 * 60 * 1000;
+const DEFAULT_EXTENSION_URL = "https://chromewebstore.google.com/detail/phishlens/ompglgjccagiadkbeeneonjiooojincn";
 
 async function bodyJson(request, max = 12000) {
   const raw = await request.text();
@@ -62,6 +63,7 @@ function publicExtensionUrl(value) {
 
 export function createCommunityHandlers({ makeAdminClient = adminSupabase, makePublicClient = publicSupabase, isAllowedAdmin = (email) => Boolean(email) && allowedAdminEmails().has(email.toLowerCase()), fetchImpl = globalThis.fetch, env = process.env } = {}) {
   const db = () => makeAdminClient();
+  const extensionUrl = () => publicExtensionUrl(env.EXTENSION_PUBLIC_URL) || DEFAULT_EXTENSION_URL;
   async function verifyTurnstile(token) {
     const secret = env.TURNSTILE_SECRET_KEY;
     if (!secret || !env.TURNSTILE_SITE_KEY) return { ok: false, unavailable: true };
@@ -78,7 +80,7 @@ export function createCommunityHandlers({ makeAdminClient = adminSupabase, makeP
   }
 
   return {
-    config: async () => json(200, { turnstileSiteKey: env.TURNSTILE_SITE_KEY || "", extensionUrl: publicExtensionUrl(env.EXTENSION_PUBLIC_URL) }),
+    config: async () => json(200, { turnstileSiteKey: env.TURNSTILE_SITE_KEY || "", extensionUrl: extensionUrl() }),
 
     publicStats: async () => {
       const { data, error } = await db().rpc("community_public_stats");
@@ -161,7 +163,7 @@ export function createCommunityHandlers({ makeAdminClient = adminSupabase, makeP
         if (!input || Object.keys(input).some((key) => !allowed.includes(key)) || !products.has(input.product) || !Number.isInteger(input.completedSteps) || input.completedSteps < 0 || input.completedSteps > 7) return json(400, { error: "Kiểm tra lại thông tin đánh giá." });
         const ratingKeys = ["ease", "clarity", "speed", "usefulness", "overall"];
         if (!input.ratings || Object.keys(input.ratings).length !== 5 || ratingKeys.some((key) => !Number.isInteger(input.ratings[key]) || input.ratings[key] < 1 || input.ratings[key] > 5)) return json(400, { error: "Hãy chấm đủ năm tiêu chí từ 1 đến 5." });
-        if (input.product !== "website" && !publicExtensionUrl(env.EXTENSION_PUBLIC_URL)) return json(400, { error: "Phần thử extension chưa mở vì chưa có link cài đặt công khai." });
+        if (input.product !== "website" && !extensionUrl()) return json(400, { error: "Phần thử extension chưa mở vì chưa có link cài đặt công khai." });
         const limits = { issue: 1200, usefulFeature: 600, desiredFeature: 600, suggestion: 1000 };
         for (const [field, max] of Object.entries(limits)) if (typeof (input[field] ?? "") !== "string" || (input[field] ?? "").length > max) return json(400, { error: "Một nội dung góp ý vượt quá giới hạn cho phép." });
         const verification = await verifyTurnstile(input.turnstileToken);

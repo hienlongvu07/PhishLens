@@ -121,16 +121,19 @@ test("Vietnam impersonation reports deduct 80 only while within 12 months", () =
   const recent = applyVietnamThreatRecords(analyzeUrl("https://recent.test"), matchVietnamThreatRecords("recent.test", feed, now), "available", "2026-10-18T00:00:00Z");
   assert.equal(recent.safetyScore, 20);
   assert.equal(recent.scoreBreakdown.at(-1).code, "vietnam_impersonation");
+  assert.ok(recent.signals.some(({ code }) => code === "vietnam_impersonation"));
   assert.ok(recent.findings.some((finding) => /Bộ mẫu/.test(finding)));
 
   const old = applyVietnamThreatRecords(analyzeUrl("https://old.test"), matchVietnamThreatRecords("old.test", feed, now));
   assert.equal(old.safetyScore, 100);
   assert.ok(old.vietnamThreatMatches[0].historical);
+  assert.ok(old.signals.some(({ code }) => code === "vietnam_impersonation_historical"));
   assert.ok(old.findings.some((finding) => /quá 12 tháng/.test(finding)));
 
   const gambling = applyVietnamThreatRecords(analyzeUrl("https://gambling.test"), matchVietnamThreatRecords("gambling.test", feed, now));
   assert.equal(gambling.safetyScore, 100);
   assert.equal(gambling.scoreBreakdown.length, 0);
+  assert.ok(gambling.signals.some(({ code }) => code === "vietnam_gambling_violation"));
   assert.ok(gambling.findings.some((finding) => /không phải kết luận phishing/.test(finding)));
 });
 
@@ -181,6 +184,14 @@ test("popup asks before AI fetch and sends only hostname plus signal codes", asy
   assert.match(handler, /if \(!approved\) return/);
   assert.match(handler, /JSON\.stringify\(\{ hostname, signalCodes \}\)/);
   assert.doesNotMatch(handler, /currentUrl|\.pathname|\.search|\.hash|\.cookie|innerText/);
+  assert.match(handler, /await analysisReady/);
+  assert.match(handler, /data\.ai\.nextStep/);
+  assert.match(handler, /data\.ai\.evidence\.length/);
+  assert.match(handler, /renderAiError\(error\)/);
+  assert.match(popup, /AI_PROVIDER_CONNECTION_FAILED/);
+  assert.match(popup, /HTTP \$\{error\.status\}/);
+  assert.match(popup, /details\.className = "ai-error-details"/);
+  assert.doesNotMatch(popup, /providerMessage|error\.message/);
 });
 
 test("popup scoring uses the static feed locally and retains manual third-party links", async () => {

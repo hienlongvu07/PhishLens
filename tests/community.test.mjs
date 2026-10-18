@@ -64,7 +64,7 @@ test("Beta feedback requires all ratings and verified Turnstile", async () => {
 
 test("community environment and CSP expose Turnstile only through the site key", async () => {
   const { handlers } = setup({ EXTENSION_PUBLIC_URL: "" });
-  const config = await (await handlers.config()).json(); assert.equal(config.turnstileSiteKey, "site-key"); assert.equal(config.extensionUrl, "");
+  const config = await (await handlers.config()).json(); assert.equal(config.turnstileSiteKey, "site-key"); assert.equal(config.extensionUrl, "https://chromewebstore.google.com/detail/phishlens/ompglgjccagiadkbeeneonjiooojincn");
   const vercel = JSON.parse(await readFile(new URL("../vercel.json", import.meta.url), "utf8"));
   assert.match(vercel.headers[0].headers.find((h) => h.key === "Content-Security-Policy").value, /challenges\.cloudflare\.com/);
 });

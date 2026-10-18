@@ -478,6 +478,8 @@ footer p { color: #7b8793; font-size: 10px; }
 .extension-feature { background: radial-gradient(ellipse at 76% 24%,#16836b 0,transparent 32%),radial-gradient(ellipse at 6% 100%,#6b5b31 0,transparent 26%),linear-gradient(118deg,#0c3035 0%,#0e4d48 52%,#14614e 100%); }
 .extension-download { display:flex; align-items:center; flex-wrap:wrap; gap:11px; margin-top:23px; }
 .extension-button.is-upcoming { display:inline-flex; align-items:center; gap:14px; min-width:174px; min-height:48px !important; padding-inline:20px; border:1px solid #9ff0b0; border-radius:7px; background:linear-gradient(120deg,#83e69b,#4cca7c) !important; color:#103b34 !important; box-shadow:0 8px 24px #49d47b30; cursor:not-allowed; opacity:1; }
+.extension-button.is-install { display:inline-flex; align-items:center; gap:14px; min-width:174px; min-height:48px !important; padding-inline:20px; border:1px solid #9ff0b0; border-radius:7px; background:linear-gradient(120deg,#83e69b,#4cca7c) !important; color:#103b34 !important; box-shadow:0 8px 24px #49d47b30; text-decoration:none; }
+.extension-button.is-install:hover { background:linear-gradient(120deg,#96efaa,#61d88b) !important; box-shadow:0 10px 30px #49d47b45 !important; }
 .extension-button.is-upcoming span { display:grid; place-items:center; width:23px; height:23px; border-radius:50%; background:#155b49; color:#e4ffe7; animation: download-nudge 2.4s ease-in-out infinite; }
 .extension-button.is-upcoming:disabled { filter:saturate(.9); }
 .release-pill { display:inline-flex; align-items:center; gap:7px; padding:8px 11px; border:1px solid #efcf82a6; border-radius:999px; background:#efcf821b; color:#ffe1a0; font-size:9px; font-weight:800; letter-spacing:.2px; }

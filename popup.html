@@ -37,8 +37,8 @@
     <section id="guide" class="panel hidden"><div id="mini-guide" class="guide-mini"></div><a id="guide-link" class="site-guide" href="#cam-nang" target="_blank" rel="noopener noreferrer">Mở cẩm nang đầy đủ trên website ↗</a></section>
     <section class="ai-area" aria-labelledby="ai-title">
       <p id="ai-title" class="ai-kicker">Giải thích thêm</p>
-      <button id="ai-analyze" class="ai-button" disabled>✦ Giải thích bằng AI</button>
-      <p id="ai-consent-note" class="ai-consent-note" role="status">Chỉ gửi tên miền và dấu hiệu sau khi bạn xác nhận.</p>
+      <button id="ai-analyze" class="ai-button" disabled>✦ Giải thích kết quả bằng AI</button>
+      <p id="ai-consent-note" class="ai-consent-note" role="status">Chỉ gửi thông tin sau khi bạn xác nhận.</p>
       <div id="ai-status" class="ai-status" role="status" aria-live="polite"></div>
       <div id="community-result" class="community-result hidden"></div>
       <section id="ai-result" class="ai-result hidden" aria-label="Giải thích từ AI"></section>
@@ -49,12 +49,12 @@
     <form method="dialog">
       <p class="consent-eyebrow">GIẢI THÍCH BỔ SUNG</p>
       <h2 id="ai-consent-title">Bạn muốn xem giải thích từ AI?</h2>
-      <p id="ai-consent-description">PhishLens sẽ chuyển tên miền và các dấu hiệu tìm thấy tới đối tác xử lý AI (Hive) để tạo phần giải thích. Nếu đã có cảnh báo PhishLens xác minh cho tên miền này, thông tin cảnh báo cũng được chuyển kèm. Việc này không làm thay đổi điểm đánh giá.</p>
+      <p id="ai-consent-description">PhishLens gửi hostname cùng mã dấu hiệu và mã phân loại danh sách đã khớp tới máy chủ PhishLens. Máy chủ có thể chuyển tiếp các thông tin này cùng cảnh báo PhishLens đã xác minh tới Hive để dùng model DeepSeek tạo lời giải thích. AI không quyết định điểm an toàn.</p>
       <div class="consent-domain"><span>Website đang kiểm tra</span><strong id="consent-domain"></strong></div>
-      <p class="consent-privacy">Không gửi đường dẫn đầy đủ, thông tin sau dấu ? hoặc #, thông tin đăng nhập, cookie hay nội dung trang. Phần giải thích chỉ mang tính tham khảo.</p>
+      <p class="consent-privacy">Không gửi URL đầy đủ, đường dẫn, query, fragment, thông tin đăng nhập, cookie hay nội dung trang. Bạn sẽ được hỏi riêng trước mỗi lần gửi.</p>
       <div class="consent-actions">
-        <button id="ai-consent-cancel" class="consent-cancel" value="cancel" autofocus>Để sau</button>
-        <button id="ai-consent-approve" class="consent-approve" value="approve">Tiếp tục</button>
+        <button id="ai-consent-cancel" class="consent-cancel" value="cancel" autofocus>Không gửi</button>
+        <button id="ai-consent-approve" class="consent-approve" value="approve">Đồng ý và tiếp tục</button>
       </div>
     </form>
   </dialog>

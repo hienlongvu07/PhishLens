@@ -117,23 +117,27 @@ test("admin can list, paginate and change report status through the protected RP
 
 test("AI analysis accepts only hostname and signal codes and returns verified source separately", async () => {
   const requests = [];
-  const aiResult = { summary: "Có dấu hiệu cần xem xét.", evidence: ["Tên miền dùng HTTP."], nextSteps: ["Tự mở website chính thức."], limitations: "Không xác minh toàn bộ website." };
+  const aiResult = { summary: "Có dấu hiệu cần xem xét.", evidence: ["Tên miền dùng HTTP."], nextStep: "Tự mở website chính thức." };
   const handlers = createApiHandlers({
     makeAdminClient: () => ({ from: () => ({ select() { return this; }, eq(_field, host) { this.host = host; return this; }, async maybeSingle() { return { data: this.host === "login-verify-example.test" ? { hostname: this.host, type: "demo", summary: "Cảnh báo demo đã xác minh.", source_url: "https://example.org/source", status: "Đã xác minh", source: "PhishLens", updated_at: "2026-10-14", is_demo: true, url: "https://must-not-send.test/?secret=1" } : null, error: null }; } }) }),
     hiveApiKey: () => "test-key", hiveModel: () => "test-model",
     fetchImpl: async (url, init) => { requests.push({ url, init, body: JSON.parse(init.body) }); return new Response(`data: ${JSON.stringify({ choices: [{ delta: { content: JSON.stringify(aiResult) } }] })}\n\ndata: [DONE]\n\n`, { headers: { "Content-Type": "text/event-stream" } }); }
   });
-  const response = await handlers.analyze(post("https://phishlens.test/api/analyze", { hostname: "login-verify-example.test", signalCodes: ["http", "sample_blocklist"] }));
+  const categories = ["http", "sample_blocklist", "threat_feed", "vietnam_impersonation", "vietnam_impersonation_historical", "vietnam_gambling_violation"];
+  const response = await handlers.analyze(post("https://phishlens.test/api/analyze", { hostname: "login-verify-example.test", signalCodes: categories }));
   const data = await response.json();
   assert.equal(response.status, 200);
   assert.equal(data.community.status, "verified");
   assert.equal(data.community.demo, true);
   assert.deepEqual(data.ai, aiResult);
   const modelInput = JSON.parse(requests[0].body.messages[1].content);
-  assert.deepEqual(modelInput.signalCodes, ["http", "sample_blocklist"]);
+  assert.deepEqual(modelInput.signalCodes, categories);
   assert.equal(modelInput.hostname, "login-verify-example.test");
   assert.equal(modelInput.signalDetails[0].code, "http");
   assert.equal(JSON.stringify(requests[0].body).includes("must-not-send"), false);
+  assert.equal(JSON.stringify(requests[0].body).includes("example.org/source"), false);
+  assert.equal(JSON.stringify(requests[0].body).includes("url"), false);
+  assert.equal(JSON.stringify(requests[0].body).includes("secret=1"), false);
   assert.equal(requests[0].url, "https://api-cdn.thehive.ai/api/v3/chat/completions");
   assert.equal(requests[0].init.headers.Authorization, "Bearer test-key");
   assert.equal(requests[0].init.headers.Accept, "text/event-stream");
@@ -157,6 +161,11 @@ test("AI analysis returns useful machine-readable errors for malformed output, p
   const malformedResponse = await malformed.analyze(post("https://phishlens.test/api/analyze", body));
   assert.equal(malformedResponse.status, 502);
   assert.equal((await malformedResponse.json()).code, "AI_INVALID_OUTPUT");
+  const oversizedResult = { summary: "x".repeat(321), evidence: [], nextStep: "Kiểm tra qua kênh chính thức." };
+  const oversized = createApiHandlers({ ...baseOptions, fetchImpl: async () => new Response(`data: ${JSON.stringify({ choices: [{ delta: { content: JSON.stringify(oversizedResult) } }] })}\n\ndata: [DONE]\n`) });
+  const oversizedResponse = await oversized.analyze(post("https://phishlens.test/api/analyze", body));
+  assert.equal(oversizedResponse.status, 502);
+  assert.equal((await oversizedResponse.json()).code, "AI_INVALID_OUTPUT");
   const failed = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ error: "upstream" }, { status: 500 }) });
   const failedResponse = await failed.analyze(post("https://phishlens.test/api/analyze", body));
   assert.equal(failedResponse.status, 502);
@@ -174,13 +183,20 @@ test("AI analysis returns useful machine-readable errors for malformed output, p
   const rejected = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ error: { status: "INVALID_ARGUMENT", message: "Unsupported generation setting." } }, { status: 400 }) });
   const rejectedData = await (await rejected.analyze(post("https://phishlens.test/api/analyze", body))).json();
   assert.equal(rejectedData.code, "HIVE_REQUEST_INVALID");
-  assert.equal(rejectedData.providerStatus, "INVALID_ARGUMENT");
-  assert.match(rejectedData.providerMessage, /Unsupported generation setting/);
-  const noBalance = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ status_code: 405, message: "Organization paused" }, { status: 405 }) });
+  assert.equal(Object.hasOwn(rejectedData, "providerStatus"), false);
+  assert.equal(Object.hasOwn(rejectedData, "providerMessage"), false);
+  assert.equal(JSON.stringify(rejectedData).includes("Unsupported generation setting"), false);
+  const noBalance = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ status_code: 402 }, { status: 402 }) });
   assert.equal((await (await noBalance.analyze(post("https://phishlens.test/api/analyze", body))).json()).code, "HIVE_BALANCE_REQUIRED");
+  const oldBalance = createApiHandlers({ ...baseOptions, fetchImpl: async () => Response.json({ status_code: 405 }, { status: 405 }) });
+  assert.equal((await (await oldBalance.analyze(post("https://phishlens.test/api/analyze", body))).json()).code, "HIVE_BALANCE_REQUIRED");
   const timeout = createApiHandlers({ ...baseOptions, fetchImpl: async () => { throw Object.assign(new Error("timeout"), { name: "TimeoutError" }); } });
   const timeoutResponse = await timeout.analyze(post("https://phishlens.test/api/analyze", body));
   assert.equal(timeoutResponse.status, 504);
   assert.equal((await timeoutResponse.json()).code, "AI_TIMEOUT");
+  const disconnected = createApiHandlers({ ...baseOptions, fetchImpl: async () => { throw new TypeError("secret provider URL or key"); } });
+  const disconnectedResponse = await disconnected.analyze(post("https://phishlens.test/api/analyze", body));
+  assert.equal(disconnectedResponse.status, 502);
+  assert.equal((await disconnectedResponse.json()).code, "AI_PROVIDER_CONNECTION_FAILED");
 });
 

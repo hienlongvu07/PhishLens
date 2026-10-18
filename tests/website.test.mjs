@@ -65,12 +65,11 @@ test("editorial home preserves accessibility and compact survey context", () => 
   assert.match(home, /Chưa có dữ liệu không có nghĩa website an toàn/);
 });
 
-test("extension spotlight has an honest store placeholder and balanced survey stats", () => {
+test("extension spotlight links to the published Chrome Web Store listing", () => {
   assert.match(home, /<section class="extension-feature" aria-labelledby="extension-heading">/);
-  assert.match(home, /<button class="button extension-button is-upcoming" type="button" disabled aria-describedby="extension-release-status">Tải tiện ích/);
-  assert.match(home, /class="release-pill"><span aria-hidden="true">●<\/span> Sắp ra mắt<\/span>/);
-  assert.match(home, /Liên kết Chrome Web Store sẽ được cập nhật tại đây khi tiện ích được phát hành/);
-  assert.doesNotMatch(home, /class="button extension-button[^>]*href=/);
+  assert.match(home, /<a class="button extension-button is-install" href="https:\/\/chromewebstore\.google\.com\/detail\/phishlens\/ompglgjccagiadkbeeneonjiooojincn" target="_blank" rel="noopener noreferrer"/);
+  assert.match(home, /class="release-pill"><span aria-hidden="true">●<\/span> Chrome Web Store<\/span>/);
+  assert.match(home, /Mở trang tiện ích trên Chrome Web Store để xem thông tin và cài đặt/);
   assert.match(home, /class="survey-number"><strong>94<\/strong><span class="survey-total">\/120<\/span>/);
   assert.match(home, /class="survey-meter" aria-hidden="true"/);
   assert.match(home, /class="survey-facts"><p><b>86<\/b><span>/);

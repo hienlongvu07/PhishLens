@@ -131,6 +131,8 @@ main { animation: popup-arrive 220ms ease-out both; }
 .ai-error-details summary { width: fit-content; cursor: pointer; font-weight: 700; }
 .ai-error-details summary:focus-visible { outline: 2px solid #80cdb6; outline-offset: 2px; }
 .ai-error-details code { display: block; margin-top: 4px; overflow-wrap: anywhere; white-space: pre-wrap; color: #53647a; font: 9px/1.4 "Cascadia Code", Consolas, monospace; }
+.ai-result > b { display: block; margin-top: 5px; }
+.ai-result > b:first-child { margin-top: 0; }
 .consent-dialog { width: min(360px, calc(100vw - 36px)); padding: 0; border: 1px solid #cfe3dc; border-radius: 16px; background: #fff; color: #24384b; box-shadow: 0 18px 60px #102b3c40; }
 .consent-dialog::backdrop { background: #102b3c80; backdrop-filter: blur(2px); }
 .consent-dialog form { padding: 20px; }

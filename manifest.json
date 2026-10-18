@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PhishLens",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "Shows a local safety score and explains noteworthy link signals before you visit.",
   "permissions": [
     "activeTab"

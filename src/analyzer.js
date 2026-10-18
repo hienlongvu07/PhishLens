@@ -3,7 +3,7 @@ import { UTS39_CONFUSABLES, UTS39_MAX_SOURCE_LENGTH } from "./uts39-confusables.
 // Transparent local URL signals. A score is a PhishLens heuristic, not a probability.
 export const SAMPLE_BRANDS = Object.freeze(["google", "facebook", "microsoft", "paypal", "amazon"]);
 export const SHORTENER_DOMAINS = Object.freeze(["bit.ly", "tinyurl.com", "t.co", "goo.gl", "is.gd"]);
-export const AI_SIGNAL_CODES = Object.freeze(["http", "many_subdomains", "long_hostname", "credentials_at", "unicode_or_punycode", "encoded_path", "hyphenated_hostname", "shortener", "lookalike_brand", "sample_blocklist", "ip_address", "suspicious_port", "suspicious_keyword"]);
+export const AI_SIGNAL_CODES = Object.freeze(["http", "many_subdomains", "long_hostname", "credentials_at", "unicode_or_punycode", "encoded_path", "hyphenated_hostname", "shortener", "lookalike_brand", "sample_blocklist", "ip_address", "suspicious_port", "suspicious_keyword", "threat_feed", "vietnam_impersonation", "vietnam_impersonation_historical", "vietnam_gambling_violation"]);
 export const SIGNAL_RISK_POINTS = Object.freeze({
   credentials_at: 25, unicode_or_punycode: 25, lookalike_brand: 25, ip_address: 25,
   http: 12, suspicious_port: 12, shortener: 12,
@@ -71,21 +71,23 @@ export function applyVietnamThreatRecords(result, matches, dataStatus = "availab
   const safetyScore = Math.max(0, 100 - riskScore);
   const band = safetyBand(safetyScore);
   const findings = [...result.findings];
+  const signals = [...(result.signals || [])];
+  const addSignal = (code) => { if (!signals.some((signal) => signal.code === code)) signals.push({ code }); };
   for (const record of records) {
     const dateLabel = record.reportedAt?.slice(0, 7) || record.reportedAt || "không rõ ngày";
     if (record.kind === "impersonation") {
+      addSignal(record.historical ? "vietnam_impersonation_historical" : "vietnam_impersonation");
       findings.push(record.historical
         ? `Báo cáo của ${record.sourceName} từng ghi nhận tên miền này giả mạo ${record.target || "tổ chức"} (${dateLabel}); dữ liệu đã quá 12 tháng nên không trừ điểm.`
         : `Báo cáo của ${record.sourceName} ghi nhận tên miền này giả mạo ${record.target || "tổ chức"} (${dateLabel}).`);
     } else if (record.kind === "gambling_violation") {
+      addSignal("vietnam_gambling_violation");
       findings.push(`Tên miền này có trong danh sách ${record.sourceName} về website cá cược/cờ bạc hoặc vi phạm (${dateLabel}); đây là cảnh báo riêng, không phải kết luận phishing.`);
     }
   }
   return {
     ...result,
-    signals: recentImpersonation && !(result.signals || []).some(({ code }) => code === "vietnam_impersonation")
-      ? [...(result.signals || []), { code: "vietnam_impersonation" }]
-      : (result.signals || []),
+    signals,
     scoreBreakdown,
     riskScore,
     safetyScore,
@@ -283,11 +285,14 @@ export function applyThreatFeed(result, status) {
   if (!result?.valid) return result;
   const match = status?.matched === true;
   const scoreBreakdown = match ? [...result.scoreBreakdown, { code: "threat_feed", points: 80 }] : result.scoreBreakdown;
+  const signals = [...(result.signals || [])];
+  if (match && !signals.some(({ code }) => code === "threat_feed")) signals.push({ code: "threat_feed" });
   const riskScore = Math.min(100, scoreBreakdown.reduce((total, item) => total + item.points, 0));
   const safetyScore = Math.max(0, 100 - riskScore);
   const band = safetyBand(safetyScore);
   return {
     ...result,
+    signals,
     scoreBreakdown,
     riskScore,
     safetyScore,
