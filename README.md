@@ -16,6 +16,8 @@ Popup hiển thị **điểm an toàn PhishLens** 0–100, tính bằng 100 tr�
 
 Extension đối chiếu hostname trên thiết bị với feed domain ACTIVE của [Phishing.Database](https://github.com/Phishing-Database/Phishing.Database); khớp feed trừ thêm 80 điểm. Không gửi hostname hay URL để tra cứu feed. Feed tĩnh được lưu trong IndexedDB và làm mới mỗi 12 giờ; nếu tải mới thất bại, bản đã lưu vẫn được dùng. Kết quả không khớp hoặc feed không sẵn sàng không chứng minh an toàn. Feed và giấy phép được phân phối trong `web/data/`; ánh xạ ký tự lấy từ [Unicode UTS #39](https://www.unicode.org/reports/tr39/).
 
+**Báo cáo Việt Nam:** extension cũng tải `web/data/vietnam-reported-sites.json` từ cùng website PhishLens, lưu trong IndexedDB và so hostname cục bộ. Dữ liệu tách riêng báo cáo giả mạo và danh sách website cờ bạc/vi phạm; mục giả mạo trong vòng 12 tháng trừ 80 điểm, mục cũ chỉ hiện ngày báo cáo, còn danh sách cờ bạc/vi phạm chỉ cảnh báo riêng và không ảnh hưởng điểm. Các mục là tập hợp chọn lọc có nguồn dẫn, không phải bản đầy đủ của danh sách cơ quan. Liên kết Tín Nhiệm Mạng chỉ mở trang tra cứu chung; extension không tự gửi hostname. Tạo/cập nhật feed bằng `npm run build:vn-threat-data`.
+
 Trước khi triển khai feed mới, chạy `npm run update:threat-data`; script tải danh sách ACTIVE và ánh xạ Unicode chính thức, kiểm tra dữ liệu rồi tạo feed gzip cùng metadata/attribution tĩnh. Vercel phục vụ các tệp từ `web/data/`, không thêm Serverless Function. Xem [hướng dẫn triển khai](DEPLOYMENT.md). Các liên kết Scam.vn và ScamAdviser vẫn là tra cứu thủ công độc lập.
 
 

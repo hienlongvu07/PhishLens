@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { gunzipSync } from "node:zlib";
-import { analyzeUrl, applyThreatFeed, hostnameMatchesThreatFeed, safetyBand, SIGNAL_RISK_POINTS } from "../src/analyzer.js";
+import { analyzeUrl, applyThreatFeed, applyVietnamThreatRecords, hostnameMatchesThreatFeed, matchVietnamThreatRecords, safetyBand, SIGNAL_RISK_POINTS } from "../src/analyzer.js";
 
 test("HTTPS without detected signals receives a high heuristic safety score, not a guarantee", () => {
   const result = analyzeUrl("https://example.com/about");
@@ -104,6 +104,58 @@ test("feed hostname matching covers listed host and subdomains without suffix fa
   assert.equal(hostnameMatchesThreatFeed("phishing.test.example", feed), false);
 });
 
+test("Vietnam reports match root domains and subdomains but not lookalike suffixes", () => {
+  const feed = { records: [{ domain: "fake.gov.vn", kind: "impersonation", reportedAt: "2025-11-16", sourceName: "Cơ quan", sourceUrl: "https://example.test/report" }] };
+  assert.equal(matchVietnamThreatRecords("fake.gov.vn", feed, Date.parse("2026-10-18T00:00:00Z")).length, 1);
+  assert.equal(matchVietnamThreatRecords("login.fake.gov.vn", feed, Date.parse("2026-10-18T00:00:00Z")).length, 1);
+  assert.equal(matchVietnamThreatRecords("notfake.gov.vn", feed, Date.parse("2026-10-18T00:00:00Z")).length, 0);
+});
+
+test("Vietnam impersonation reports deduct 80 only while within 12 months", () => {
+  const now = Date.parse("2026-10-18T00:00:00Z");
+  const feed = { records: [
+    { domain: "recent.test", kind: "impersonation", target: "Bộ mẫu", reportedAt: "2025-11-16", sourceName: "Nguồn mẫu", sourceUrl: "https://example.test/report" },
+    { domain: "old.test", kind: "impersonation", target: "Cơ quan mẫu", reportedAt: "2024-11-16", sourceName: "Nguồn mẫu", sourceUrl: "https://example.test/report" },
+    { domain: "gambling.test", kind: "gambling_violation", reportedAt: "2022-09-30", sourceName: "Cơ quan mẫu", sourceUrl: "https://example.test/list" }
+  ] };
+  const recent = applyVietnamThreatRecords(analyzeUrl("https://recent.test"), matchVietnamThreatRecords("recent.test", feed, now), "available", "2026-10-18T00:00:00Z");
+  assert.equal(recent.safetyScore, 20);
+  assert.equal(recent.scoreBreakdown.at(-1).code, "vietnam_impersonation");
+  assert.ok(recent.findings.some((finding) => /Bộ mẫu/.test(finding)));
+
+  const old = applyVietnamThreatRecords(analyzeUrl("https://old.test"), matchVietnamThreatRecords("old.test", feed, now));
+  assert.equal(old.safetyScore, 100);
+  assert.ok(old.vietnamThreatMatches[0].historical);
+  assert.ok(old.findings.some((finding) => /quá 12 tháng/.test(finding)));
+
+  const gambling = applyVietnamThreatRecords(analyzeUrl("https://gambling.test"), matchVietnamThreatRecords("gambling.test", feed, now));
+  assert.equal(gambling.safetyScore, 100);
+  assert.equal(gambling.scoreBreakdown.length, 0);
+  assert.ok(gambling.findings.some((finding) => /không phải kết luận phishing/.test(finding)));
+});
+
+test("unavailable Vietnam data leaves the local score unchanged", () => {
+  const local = analyzeUrl("https://example.com");
+  const result = applyVietnamThreatRecords(local, [], "unavailable");
+  assert.equal(result.safetyScore, local.safetyScore);
+  assert.equal(result.vietnamThreatStatus, "unavailable");
+});
+
+test("Vietnam static feed contains sourced, separated, explicitly partial records", async () => {
+  const data = JSON.parse(await readFile(new URL("../web/data/vietnam-reported-sites.json", import.meta.url), "utf8"));
+  assert.equal(data.recordCount, data.records.length);
+  assert.equal(data.records.length, 80);
+  assert.match(data.coverageNote, /does not contain the complete lists/i);
+  assert.ok(data.records.some(({ kind }) => kind === "impersonation"));
+  assert.ok(data.records.some(({ kind }) => kind === "gambling_violation"));
+  for (const record of data.records) {
+    assert.match(record.domain, /^(?:[a-z0-9-]+\.)+[a-z0-9-]+$/);
+    assert.match(record.sourceUrl, /^https:\/\//);
+    assert.match(record.reportedAt, /^\d{4}-\d{2}-\d{2}$/);
+  }
+  assert.equal(data.records.some(({ sourceId }) => sourceId === "abei-gambling-2024"), false);
+});
+
 test("downloadable feed is gzip, sorted, attributed and consistent with metadata", async () => {
   const [compressed, metadataText, license, unicodeNotice] = await Promise.all([
     readFile(new URL("../web/data/phishing-domains.gzdata", import.meta.url)),
@@ -134,6 +186,7 @@ test("popup asks before AI fetch and sends only hostname plus signal codes", asy
 test("popup scoring uses the static feed locally and retains manual third-party links", async () => {
   const popup = await readFile(new URL("../popup.js", import.meta.url), "utf8");
   const html = await readFile(new URL("../popup.html", import.meta.url), "utf8");
+  const privacy = await readFile(new URL("../web/privacy.html", import.meta.url), "utf8");
   assert.match(popup, /indexedDB/);
   assert.match(popup, /phishing-domains\.gzdata/);
   assert.doesNotMatch(popup, /fetch\([^\n]*canonicalHostname/);
@@ -141,4 +194,8 @@ test("popup scoring uses the static feed locally and retains manual third-party 
   assert.match(html, /Phishing\.Database/);
   assert.match(html, /https:\/\/scam\.vn\/check-website/);
   assert.match(html, /https:\/\/www\.scamadviser\.com\/check-website/);
+  assert.match(popup, /data\/vietnam-reported-sites\.json/);
+  assert.match(popup, /https:\/\/tinnhiemmang\.vn\/website-lua-dao/);
+  assert.doesNotMatch(popup, /tinnhiemmang\.vn[^\n]*(?:hostname|canonicalHostname|currentUrl)/);
+  assert.match(privacy, /không đính kèm tên miền/);
 });

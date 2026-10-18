@@ -9,7 +9,8 @@
     "test": "node --test",
     "dev": "vercel dev",
     "build:extension": "node scripts/build-extension.mjs",
-    "update:threat-data": "node scripts/update-threat-data.mjs"
+    "update:threat-data": "node scripts/update-threat-data.mjs",
+    "build:vn-threat-data": "node scripts/build-vietnam-threat-feed.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",

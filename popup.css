@@ -102,6 +102,10 @@ main { animation: popup-arrive 220ms ease-out both; }
 .safety-score[data-band="red"] .score-track > span { background: #c94c40; }
 .safety-score > p { margin: 7px 0 0; color: #65758a; font-size: 9px; line-height: 1.4; }
 .safety-score .threat-feed-status { color: #44596d; }
+.vietnam-threat-status { margin-top: 7px; padding-top: 7px; border-top: 1px solid #edf0f3; color: #44596d; font-size: 9px; line-height: 1.45; }
+.vietnam-threat-status p { margin: 0 0 4px; color: inherit; font-size: inherit; }
+.vietnam-threat-status a { color: #17654f; font-weight: 700; }
+.vietnam-threat-status .feed-scope-note { margin-top: 5px; color: #6a7887; font-size: 8px; }
 .score-breakdown { margin-top: 9px; padding-top: 8px; border-top: 1px solid #edf0f3; color: #53647a; font-size: 10px; }
 .score-breakdown > b { display: block; margin-bottom: 5px; }
 .score-breakdown ul { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }

@@ -34,6 +34,70 @@ export function hostnameMatchesThreatFeed(hostname, domains) {
   return false;
 }
 
+export function reportIsHistorical(reportedAt, now = Date.now()) {
+  const reported = new Date(reportedAt);
+  if (!Number.isFinite(reported.getTime())) return true;
+  const expires = new Date(reported);
+  expires.setUTCMonth(expires.getUTCMonth() + 12);
+  return now > expires.getTime();
+}
+
+export function matchVietnamThreatRecords(hostname, data, now = Date.now()) {
+  if (typeof hostname !== "string" || !Array.isArray(data?.records)) return [];
+  const matches = data.records.filter((record) =>
+    typeof record?.domain === "string" && hostnameMatchesThreatFeed(hostname, [record.domain])
+  );
+  const newestByKind = new Map();
+  for (const record of matches) {
+    const current = newestByKind.get(record.kind);
+    if (!current || new Date(record.reportedAt).getTime() > new Date(current.reportedAt).getTime()) {
+      newestByKind.set(record.kind, record);
+    }
+  }
+  return [...newestByKind.values()].map((record) => ({
+    ...record,
+    historical: reportIsHistorical(record.reportedAt, now)
+  }));
+}
+
+export function applyVietnamThreatRecords(result, matches, dataStatus = "available", updatedAt = null) {
+  if (!result?.valid) return result;
+  const records = Array.isArray(matches) ? matches : [];
+  const recentImpersonation = records.some((record) => record.kind === "impersonation" && !record.historical);
+  const scoreBreakdown = recentImpersonation && !result.scoreBreakdown.some(({ code }) => code === "vietnam_impersonation")
+    ? [...result.scoreBreakdown, { code: "vietnam_impersonation", points: 80 }]
+    : result.scoreBreakdown;
+  const riskScore = Math.min(100, scoreBreakdown.reduce((total, item) => total + item.points, 0));
+  const safetyScore = Math.max(0, 100 - riskScore);
+  const band = safetyBand(safetyScore);
+  const findings = [...result.findings];
+  for (const record of records) {
+    const dateLabel = record.reportedAt?.slice(0, 7) || record.reportedAt || "không rõ ngày";
+    if (record.kind === "impersonation") {
+      findings.push(record.historical
+        ? `Báo cáo của ${record.sourceName} từng ghi nhận tên miền này giả mạo ${record.target || "tổ chức"} (${dateLabel}); dữ liệu đã quá 12 tháng nên không trừ điểm.`
+        : `Báo cáo của ${record.sourceName} ghi nhận tên miền này giả mạo ${record.target || "tổ chức"} (${dateLabel}).`);
+    } else if (record.kind === "gambling_violation") {
+      findings.push(`Tên miền này có trong danh sách ${record.sourceName} về website cá cược/cờ bạc hoặc vi phạm (${dateLabel}); đây là cảnh báo riêng, không phải kết luận phishing.`);
+    }
+  }
+  return {
+    ...result,
+    signals: recentImpersonation && !(result.signals || []).some(({ code }) => code === "vietnam_impersonation")
+      ? [...(result.signals || []), { code: "vietnam_impersonation" }]
+      : (result.signals || []),
+    scoreBreakdown,
+    riskScore,
+    safetyScore,
+    band,
+    level: band === "red" ? "Nhiều dấu hiệu cần chú ý" : band === "yellow" ? "Cần kiểm tra thêm" : "Ít dấu hiệu đáng ngờ được phát hiện",
+    vietnamThreatStatus: dataStatus,
+    vietnamThreatMatches: records,
+    vietnamThreatUpdatedAt: updatedAt,
+    findings
+  };
+}
+
 function decodePunycodeLabel(label) {
   if (!label.startsWith("xn--")) return label;
   const input = label.slice(4);

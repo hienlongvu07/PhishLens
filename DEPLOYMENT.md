@@ -44,6 +44,8 @@ npm.cmd run build:extension -- --site-url=https://<ten-project>.vercel.app
 
 Trước khi cập nhật dữ liệu phishing trên website, chạy `npm.cmd run update:threat-data`, commit các tệp mới trong `web/data/` cùng giấy phép/ghi nguồn và `src/uts39-confusables.js`, rồi triển khai website. Đây là các tệp tĩnh, không tạo Vercel Function. Chỉ sau khi thay đổi extension, build như lệnh trên; lệnh tạo `dist/extension/` để cài thử bằng Developer mode và `dist/phishlens-extension.zip` để nộp lên Chrome Web Store. Nếu đổi domain sau này, build và phát hành phiên bản extension mới.
 
+Dữ liệu báo cáo Việt Nam được biên tập trong `data/vietnam-threats-source.json`. Sau khi kiểm tra nguồn và ngày của từng mục, chạy `npm.cmd run build:vn-threat-data`; script tạo `web/data/vietnam-reported-sites.json`, là tệp tĩnh được Vercel phục vụ cùng website. Danh sách hiện tại chỉ là tập hợp chọn lọc, không chứa toàn bộ danh sách của cơ quan. Việc cập nhật dữ liệu này không tạo Function hoặc thay đổi quyền extension; extension sẽ lấy bản mới khi làm mới cache (tối đa 12 giờ). Tăng `version` trong `manifest.json` và build ZIP chỉ khi thay đổi mã/giao diện extension.
+
 ## Chạy local
 
 ```powershell

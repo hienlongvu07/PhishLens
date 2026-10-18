@@ -1,4 +1,4 @@
-import { analyzeUrl, applyThreatFeed, hostnameMatchesThreatFeed } from "./src/analyzer.js";
+import { analyzeUrl, applyThreatFeed, applyVietnamThreatRecords, hostnameMatchesThreatFeed, matchVietnamThreatRecords } from "./src/analyzer.js";
 
 const $ = (selector) => document.querySelector(selector);
 const API_BASE = chrome.runtime.getManifest().host_permissions[0].replace(/\/\*$/, "");
@@ -39,7 +39,8 @@ function renderParts(parts) {
 const SIGNAL_LABELS = {
   credentials_at: "Có dấu @ hoặc thông tin trước @", unicode_or_punycode: "Tên miền trộn hệ chữ", lookalike_brand: "Tên miền giống thương hiệu mẫu", ip_address: "Dùng địa chỉ IP",
   threat_feed: "Có trong danh sách phishing Phishing.Database", http: "Kết nối HTTP", suspicious_port: "Cổng không thường gặp", shortener: "Dịch vụ rút gọn liên kết",
-  many_subdomains: "Tên miền có nhiều cấp", long_hostname: "Tên miền dài", encoded_path: "Đường dẫn có ký tự mã hóa", hyphenated_hostname: "Tên miền có gạch nối", suspicious_keyword: "Có từ khóa cần chú ý"
+  many_subdomains: "Tên miền có nhiều cấp", long_hostname: "Tên miền dài", encoded_path: "Đường dẫn có ký tự mã hóa", hyphenated_hostname: "Tên miền có gạch nối", suspicious_keyword: "Có từ khóa cần chú ý",
+  vietnam_impersonation: "Báo cáo trong nước ghi nhận giả mạo"
 };
 
 function renderScore(result) {
@@ -52,6 +53,7 @@ function renderScore(result) {
   $("#score-fill").style.width = `${result.safetyScore}%`;
   card.dataset.band = result.band;
   $("#threat-feed-status").textContent = feedStatusText(result);
+  renderVietnamThreatStatus(result);
   const breakdown = $("#score-breakdown");
   breakdown.replaceChildren();
   if (!result.scoreBreakdown.length) { breakdown.classList.add("hidden"); return; }
@@ -64,6 +66,66 @@ function renderScore(result) {
     row.append(label, points); list.append(row);
   }
   breakdown.append(title, list); breakdown.classList.remove("hidden");
+}
+
+function renderVietnamThreatStatus(result) {
+  const target = $("#vietnam-threat-status");
+  target.replaceChildren();
+  const matches = result.vietnamThreatMatches || [];
+  if (result.vietnamThreatStatus === "loading") {
+    target.append(document.createTextNode("Đang đối chiếu danh sách báo cáo trong nước…"));
+  } else if (result.vietnamThreatStatus === "unavailable") {
+    target.append(document.createTextNode("Chưa tải được danh sách báo cáo trong nước; điểm phân tích cục bộ vẫn được giữ."));
+  } else if (!matches.length) {
+    const freshness = result.vietnamThreatStatus === "stale" ? " Đang dùng bản đã lưu; dữ liệu có thể cũ." : "";
+    target.append(document.createTextNode(`Không khớp dữ liệu báo cáo đã tải; điều này không chứng minh website an toàn.${freshness}`));
+  } else {
+    for (const record of matches) {
+      const item = document.createElement("p");
+      const period = record.reportedAt?.slice(0, 7) || record.reportedAt;
+      if (record.kind === "impersonation") {
+        item.textContent = record.historical
+          ? `Báo cáo ${period} từng ghi nhận tên miền giả mạo ${record.target || "tổ chức"}; đã quá 12 tháng nên không trừ điểm.`
+          : `Báo cáo ${period} ghi nhận tên miền giả mạo ${record.target || "tổ chức"}; trừ 80 điểm an toàn.`;
+      } else {
+        item.textContent = `Có tên trong danh sách cờ bạc/vi phạm (${period}); cảnh báo riêng, không phải kết luận phishing và không đổi điểm.`;
+      }
+      target.append(item);
+      const source = document.createElement("a");
+      source.href = record.sourceUrl;
+      source.target = "_blank";
+      source.rel = "noopener noreferrer";
+      source.textContent = record.sourceName;
+      target.append(source);
+      if (record.sourceEvidenceUrl) {
+        const evidence = document.createElement("a");
+        evidence.href = record.sourceEvidenceUrl;
+        evidence.target = "_blank";
+        evidence.rel = "noopener noreferrer";
+        evidence.textContent = "Bài công bố tên miền";
+        target.append(document.createTextNode(" · "), evidence);
+      }
+    }
+    if (result.vietnamThreatStatus === "stale") {
+      target.append(document.createTextNode(" Đang dùng bản đã lưu; dữ liệu có thể cũ."));
+    }
+  }
+  const lookup = document.createElement("a");
+  lookup.href = "https://tinnhiemmang.vn/website-lua-dao";
+  lookup.target = "_blank";
+  lookup.rel = "noopener noreferrer";
+  lookup.textContent = "Tự tra cứu trên Tín Nhiệm Mạng";
+  target.append(document.createElement("br"), lookup);
+  const scope = document.createElement("p");
+  scope.className = "feed-scope-note";
+  scope.textContent = "Danh sách chỉ gồm các tên miền được chọn từ báo cáo có nguồn dẫn; không bao phủ toàn bộ danh sách của cơ quan.";
+  target.append(scope);
+  if (result.vietnamThreatUpdatedAt) {
+    const updated = document.createElement("p");
+    updated.className = "feed-scope-note";
+    updated.textContent = `Dữ liệu PhishLens cập nhật ${new Date(result.vietnamThreatUpdatedAt).toLocaleDateString("vi-VN")}.`;
+    target.append(updated);
+  }
 }
 
 function feedStatusText(result) {
@@ -99,6 +161,25 @@ async function writeFeedCache(value) {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction("cache", "readwrite");
     transaction.objectStore("cache").put(value, "active-domains");
+    transaction.oncomplete = () => { db.close(); resolve(); };
+    transaction.onerror = () => { db.close(); reject(transaction.error); };
+  });
+}
+
+async function readVietnamFeedCache() {
+  const db = await openFeedDatabase();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction("cache", "readonly").objectStore("cache").get("vietnam-reported-sites");
+    request.onsuccess = () => { db.close(); resolve(request.result || null); };
+    request.onerror = () => { db.close(); reject(request.error); };
+  });
+}
+
+async function writeVietnamFeedCache(value) {
+  const db = await openFeedDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction("cache", "readwrite");
+    transaction.objectStore("cache").put(value, "vietnam-reported-sites");
     transaction.oncomplete = () => { db.close(); resolve(); };
     transaction.onerror = () => { db.close(); reject(transaction.error); };
   });
@@ -148,6 +229,47 @@ async function lookupThreatFeed(hostname) {
   }
 }
 
+async function downloadVietnamThreatData() {
+  const response = await fetch(`${API_BASE}/data/vietnam-reported-sites.json`, {
+    cache: "no-store", credentials: "omit", referrerPolicy: "no-referrer", signal: AbortSignal.timeout(30_000)
+  });
+  if (!response.ok) throw new Error("Vietnam threat data unavailable");
+  const data = await response.json();
+  if (!data?.updatedAt || !Number.isFinite(data.recordCount) || !Array.isArray(data.records) || data.recordCount !== data.records.length) {
+    throw new Error("Vietnam threat data invalid");
+  }
+  for (const record of data.records) {
+    if (typeof record.domain !== "string" || !["impersonation", "gambling_violation"].includes(record.kind)
+      || typeof record.reportedAt !== "string" || typeof record.sourceUrl !== "string" || typeof record.sourceName !== "string") {
+      throw new Error("Vietnam threat record invalid");
+    }
+  }
+  return { ...data, fetchedAt: Date.now() };
+}
+
+async function lookupVietnamThreatRecords(hostname) {
+  let cached = null;
+  try { cached = await readVietnamFeedCache(); } catch { /* Continue with a network lookup. */ }
+  try {
+    let current = cached;
+    const cacheFresh = Boolean(current && Date.now() - current.fetchedAt <= FEED_MAX_AGE_MS);
+    if (!cacheFresh) {
+      current = await downloadVietnamThreatData();
+      try { await writeVietnamFeedCache(current); } catch { /* Use the downloaded data for this check. */ }
+    }
+    return {
+      status: "available",
+      updatedAt: current.updatedAt,
+      matches: matchVietnamThreatRecords(hostname, current)
+    };
+  } catch {
+    if (cached?.records?.length) {
+      return { status: "stale", updatedAt: cached.updatedAt, matches: matchVietnamThreatRecords(hostname, cached) };
+    }
+    return { status: "unavailable", matches: [] };
+  }
+}
+
 async function readAiResponse(response) {
   const text = await response.text();
   let data;
@@ -181,8 +303,14 @@ async function init() {
   $("#report").textContent = "Gửi báo cáo đến website PhishLens";
 
   if (result.valid) {
+    result = { ...result, vietnamThreatStatus: "loading", vietnamThreatMatches: [] };
+    currentAnalysis = result;
+    renderScore(result);
     lookupThreatFeed(result.canonicalHostname).then((status) => {
       result = applyThreatFeed(result, status);
+      return lookupVietnamThreatRecords(result.canonicalHostname);
+    }).then((data) => {
+      result = applyVietnamThreatRecords(result, data.matches, data.status, data.updatedAt);
       currentAnalysis = result;
       $("#level").textContent = result.level;
       $("#level").className = `level ${result.band}`;

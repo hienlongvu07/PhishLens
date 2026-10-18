@@ -1,0 +1,564 @@
+{
+  "sources": [
+    {
+      "id": "attt-impersonation-2025-11",
+      "name": "Cảnh báo của Bộ Tài chính và BHXH (được Công an Cà Mau đăng lại)",
+      "url": "https://congan.camau.gov.vn/ch26/1148-Canh-bao-thu-doan-gia-mao-website-cua-Bo-Tai-chinh-va-Bao-hiem-xa-hoi-de-lua-dao.mhtml",
+      "publishedAt": "2025-11-16",
+      "kind": "impersonation"
+    },
+    {
+      "id": "attt-impersonation-2024-11",
+      "name": "Cục An toàn thông tin — báo cáo tháng 11/2024",
+      "url": "https://stttt.kiengiang.gov.vn/Lists/TinTuc/Attachments/2821/Cuc%20ATTT-%20BC%20ATTT%20thang%2011_2024.PDF",
+      "publishedAt": "2024-11-30",
+      "kind": "impersonation"
+    },
+    {
+      "id": "attt-impersonation-2024-09",
+      "name": "Cục An toàn thông tin — báo cáo tháng 9/2024",
+      "url": "https://stttt.kiengiang.gov.vn/Lists/TinTuc/Attachments/2779/Cuc%20ATTT_BC%20ATTTT%20T09_2024.PDF",
+      "publishedAt": "2024-09-30",
+      "kind": "impersonation"
+    },
+    {
+      "id": "sttt-namdinh-2024-07",
+      "name": "Sở Thông tin và Truyền thông Nam Định — danh sách website giả mạo",
+      "url": "https://sotttt.namdinh.gov.vn/portal/VanBan/2024-07/5ee2bc79e7ed9b2dcv752.pdf",
+      "publishedAt": "2024-07-31",
+      "kind": "impersonation"
+    },
+    {
+      "id": "abei-gambling-2024",
+      "name": "Cục PTTH&TTĐT — danh sách website vi phạm năm 2024",
+      "url": "https://abei.gov.vn/phat-thanh-truyen-hinh/hon-900-website-vi-pham-phap-luat-bi-de-nghi-khong-dang-quang-cao-nam-2024/118628",
+      "evidenceUrl": "https://tiepthigiadinh.vn/blacklist-hon-900-website-cung-cap-noi-dung-quang-cao-ca-do-tro-choi-dien-tu-co-bac-bi-cam-nguoi-tieu-dung-can-tranh-d21030.html",
+      "publishedAt": "2025-01-04",
+      "kind": "gambling_violation",
+      "note": "The article confirms the 904-site report and its categories but does not publish unredacted domain names in the article text; no hostname records from this report are included."
+    },
+    {
+      "id": "abei-gambling-2022-q3",
+      "name": "Cục PTTH&TTĐT — danh sách website vi phạm quý III/2022",
+      "url": "https://abei.gov.vn/thong-tin-dien-tu/bo-thong-tin-va-truyen-thong-cong-bo-danh-sach-cac-website-co-dau-hieu-vi-pham-phap-luat-cap-nhat-quy-iii2022/107917",
+      "publishedAt": "2022-09-30",
+      "kind": "gambling_violation",
+      "note": "The source page contains 48 entries, including one repeated domain; this feed includes the 47 unique hostnames."
+    }
+  ],
+  "records": [
+    {
+      "domain": "congthongtindientubtc.com",
+      "kind": "impersonation",
+      "target": "Bộ Tài chính",
+      "reportedAt": "2025-11-09",
+      "sourceId": "attt-impersonation-2025-11"
+    },
+    {
+      "domain": "datlichbhxh.com",
+      "kind": "impersonation",
+      "target": "Bảo hiểm xã hội Việt Nam",
+      "reportedAt": "2025-11-16",
+      "sourceId": "attt-impersonation-2025-11"
+    },
+    {
+      "domain": "shop.shopamzselling.com",
+      "kind": "impersonation",
+      "target": "Amazon",
+      "reportedAt": "2024-11-30",
+      "sourceId": "attt-impersonation-2024-11"
+    },
+    {
+      "domain": "sellings-global.com",
+      "kind": "impersonation",
+      "target": "Amazon và FedEx",
+      "reportedAt": "2024-11-30",
+      "sourceId": "attt-impersonation-2024-11"
+    },
+    {
+      "domain": "amazoui.top",
+      "kind": "impersonation",
+      "target": "Amazon",
+      "reportedAt": "2024-11-30",
+      "sourceId": "attt-impersonation-2024-11"
+    },
+    {
+      "domain": "amazoni1.com",
+      "kind": "impersonation",
+      "target": "Amazon",
+      "reportedAt": "2024-11-30",
+      "sourceId": "attt-impersonation-2024-11"
+    },
+    {
+      "domain": "applecenter.info.vn",
+      "kind": "impersonation",
+      "target": "Apple",
+      "reportedAt": "2024-11-30",
+      "sourceId": "attt-impersonation-2024-11"
+    },
+    {
+      "domain": "clash-flow-loan.com",
+      "kind": "impersonation",
+      "target": "Bộ Công an",
+      "reportedAt": "2024-11-30",
+      "sourceId": "attt-impersonation-2024-11"
+    },
+    {
+      "domain": "dichvucongbca.com",
+      "kind": "impersonation",
+      "target": "Bộ Công an",
+      "reportedAt": "2024-11-30",
+      "sourceId": "attt-impersonation-2024-11"
+    },
+    {
+      "domain": "dichvucong.thongtincancuoc.org",
+      "kind": "impersonation",
+      "target": "Bộ Công an",
+      "reportedAt": "2024-11-30",
+      "sourceId": "attt-impersonation-2024-11"
+    },
+    {
+      "domain": "giaohangtietkiem-cskh.com",
+      "kind": "impersonation",
+      "target": "Giao Hàng Tiết Kiệm",
+      "reportedAt": "2024-11-30",
+      "sourceId": "attt-impersonation-2024-11"
+    },
+    {
+      "domain": "giaohangtietkiem247.com.vn",
+      "kind": "impersonation",
+      "target": "Giao Hàng Tiết Kiệm",
+      "reportedAt": "2024-11-30",
+      "sourceId": "attt-impersonation-2024-11"
+    },
+    {
+      "domain": "nhanvienhanghoa.com",
+      "kind": "impersonation",
+      "target": "Giao Hàng Tiết Kiệm",
+      "reportedAt": "2024-11-30",
+      "sourceId": "attt-impersonation-2024-11"
+    },
+    {
+      "domain": "vssid.svgov.cc",
+      "kind": "impersonation",
+      "target": "Bảo hiểm xã hội Việt Nam",
+      "reportedAt": "2024-09-30",
+      "sourceId": "attt-impersonation-2024-09"
+    },
+    {
+      "domain": "giaohangtietkiem247.top",
+      "kind": "impersonation",
+      "target": "Giao Hàng Tiết Kiệm",
+      "reportedAt": "2024-09-30",
+      "sourceId": "attt-impersonation-2024-09"
+    },
+    {
+      "domain": "vngiao.hangtietkiem.online",
+      "kind": "impersonation",
+      "target": "Giao Hàng Tiết Kiệm",
+      "reportedAt": "2024-09-30",
+      "sourceId": "attt-impersonation-2024-09"
+    },
+    {
+      "domain": "giaohangtietkiemvietnam.com",
+      "kind": "impersonation",
+      "target": "Giao Hàng Tiết Kiệm",
+      "reportedAt": "2024-09-30",
+      "sourceId": "attt-impersonation-2024-09"
+    },
+    {
+      "domain": "tongcongtygiaohangtietkiem.com",
+      "kind": "impersonation",
+      "target": "Giao Hàng Tiết Kiệm",
+      "reportedAt": "2024-09-30",
+      "sourceId": "attt-impersonation-2024-09"
+    },
+    {
+      "domain": "vanchuyenghtka.com",
+      "kind": "impersonation",
+      "target": "Giao Hàng Tiết Kiệm",
+      "reportedAt": "2024-09-30",
+      "sourceId": "attt-impersonation-2024-09"
+    },
+    {
+      "domain": "org.govqp.com",
+      "kind": "impersonation",
+      "target": "Cục Đăng kiểm Việt Nam",
+      "reportedAt": "2024-09-30",
+      "sourceId": "attt-impersonation-2024-09"
+    },
+    {
+      "domain": "dichvucong.bcavnvnvngov.com",
+      "kind": "impersonation",
+      "target": "Cổng Dịch vụ công Quốc gia",
+      "reportedAt": "2024-09-30",
+      "sourceId": "attt-impersonation-2024-09"
+    },
+    {
+      "domain": "ebayu.top",
+      "kind": "impersonation",
+      "target": "eBay",
+      "reportedAt": "2024-09-30",
+      "sourceId": "attt-impersonation-2024-09"
+    },
+    {
+      "domain": "github-scanner.com",
+      "kind": "impersonation",
+      "target": "GitHub",
+      "reportedAt": "2024-09-30",
+      "sourceId": "attt-impersonation-2024-09"
+    },
+    {
+      "domain": "play.appgoogle.cc",
+      "kind": "impersonation",
+      "target": "Google Play",
+      "reportedAt": "2024-09-30",
+      "sourceId": "attt-impersonation-2024-09"
+    },
+    {
+      "domain": "hethongnoibo.bio.link",
+      "kind": "impersonation",
+      "target": "Lazada",
+      "reportedAt": "2024-09-30",
+      "sourceId": "attt-impersonation-2024-09"
+    },
+    {
+      "domain": "thecaosieutoc.shop",
+      "kind": "impersonation",
+      "target": "MoMo",
+      "reportedAt": "2024-09-30",
+      "sourceId": "attt-impersonation-2024-09"
+    },
+    {
+      "domain": "shop.global-selling.top",
+      "kind": "impersonation",
+      "target": "Amazon",
+      "reportedAt": "2024-07-31",
+      "sourceId": "sttt-namdinh-2024-07"
+    },
+    {
+      "domain": "vn156475p.com",
+      "kind": "impersonation",
+      "target": "Amazon",
+      "reportedAt": "2024-07-31",
+      "sourceId": "sttt-namdinh-2024-07"
+    },
+    {
+      "domain": "vssid.govvvn.com",
+      "kind": "impersonation",
+      "target": "Bảo hiểm xã hội Việt Nam",
+      "reportedAt": "2024-07-31",
+      "sourceId": "sttt-namdinh-2024-07"
+    },
+    {
+      "domain": "vssidgov.com",
+      "kind": "impersonation",
+      "target": "Bảo hiểm xã hội Việt Nam",
+      "reportedAt": "2024-07-31",
+      "sourceId": "sttt-namdinh-2024-07"
+    },
+    {
+      "domain": "nappthe.vn",
+      "kind": "impersonation",
+      "target": "Vietnam Esports",
+      "reportedAt": "2024-07-31",
+      "sourceId": "sttt-namdinh-2024-07"
+    },
+    {
+      "domain": "bachhoaxanhh.com",
+      "kind": "impersonation",
+      "target": "Bách Hóa Xanh",
+      "reportedAt": "2024-07-31",
+      "sourceId": "sttt-namdinh-2024-07"
+    },
+    {
+      "domain": "nqsncoau.buzz",
+      "kind": "impersonation",
+      "target": "VPBank SMBC",
+      "reportedAt": "2024-07-31",
+      "sourceId": "sttt-namdinh-2024-07"
+    },
+    {
+      "domain": "xoilac3.com",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "xoilac8.tv",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "91phutz.tv",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "vebo2.tv",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "7up.vin",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "8us88.com",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "ae88.vin",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "binh88.net",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "bo789.vip",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "bonclub.us",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "gam88.club",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "go789.fun",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "go88.love",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "huto88.club",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "kk.fan",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "nemo.vin",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "ku789.fun",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "ku789.win",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "kuvip789.biz",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "kuwin.vin",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "kuwin.win",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "manclub.club",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "mely.fun",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "play.tx66.fun",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "playsun.fun",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "sao88.net",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "sicbo.vin",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "sonson.club",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "sun52.club",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "thantai.live",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "top86.vin",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "top86.win",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "vin.club",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "vip79.fun",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "win79.vip",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "zalo.fan",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "bay365.vip",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "bayvip.live",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "hayvin.bet",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "nohu99.net",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "sunnet.win",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "go88.ai",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "sumvip88.club",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "thanquay247.vip",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "tx68.vin",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "play.sicbo.vin",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    },
+    {
+      "domain": "play.top86.win",
+      "kind": "gambling_violation",
+      "reportedAt": "2022-09-30",
+      "sourceId": "abei-gambling-2022-q3"
+    }
+  ]
+}
