@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { stories } from "../web/stories.js";
+import { hostnameMatchesFeed, vietnamReportMatches } from "../web/lookup-analysis.js";
 
 const home = await readFile(new URL("../web/index.html", import.meta.url), "utf8");
 const privacy = await readFile(new URL("../web/privacy.html", import.meta.url), "utf8");
@@ -35,8 +36,22 @@ test("URL lookup and internal report confirmation remain on the homepage", () =>
   assert.match(home, /id="report-confirm-dialog"/);
   assert.match(site, /fetch\("\/api\/reports"/);
   assert.match(site, /reportDialog\.showModal\(\)/);
+  assert.match(site, /lookupPublicThreatData\(parsed\.hostname/);
+  assert.match(site, /vietnamMatches/);
+  assert.match(site, /Phishing\.Database/);
+  assert.match(site, /không chứng minh website an toàn/);
   assert.match(home, /URL đầy đủ, gồm query và fragment, sẽ được gửi đến nhóm/);
   assert.match(home, /Query đôi khi chứa mã phiên hoặc dữ liệu riêng tư/);
+});
+
+test("website lookup uses extension-compatible public threat hostname matching", async () => {
+  const feed = JSON.parse(await readFile(new URL("../web/data/vietnam-reported-sites.json", import.meta.url), "utf8"));
+  assert.ok(feed.records.some((record) => record.domain === "congthongtindientubtc.com"));
+  assert.equal(hostnameMatchesFeed("congthongtindientubtc.com", ["congthongtindientubtc.com"]), true);
+  assert.equal(hostnameMatchesFeed("login.congthongtindientubtc.com", ["congthongtindientubtc.com"]), true);
+  assert.equal(hostnameMatchesFeed("notcongthongtindientubtc.com", ["congthongtindientubtc.com"]), false);
+  const matches = vietnamReportMatches("congthongtindientubtc.com", feed.records, Date.parse("2026-10-18T00:00:00Z"));
+  assert.ok(matches.some((record) => record.kind === "impersonation" && record.target === "Bộ Tài chính"));
 });
 
 test("story guide contains four clearly labeled, sourced example scenarios", async () => {

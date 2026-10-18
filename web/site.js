@@ -1,4 +1,5 @@
 import { stories } from "./stories.js";
+import { lookupPublicThreatData } from "./lookup-analysis.js";
 
 const $ = (selector) => document.querySelector(selector);
 const types = ["Giả mạo ngân hàng/tổ chức", "Lừa lấy mật khẩu hoặc OTP", "Giả mạo cơ quan/dịch vụ công", "Tuyển dụng/việc làm giả", "Quà tặng/khuyến mãi", "Đầu tư/vay đáng ngờ", "Liên kết rút gọn/website/tệp lạ", "Khác"];
@@ -65,27 +66,66 @@ document.querySelector("#lookup-form").addEventListener("submit", async (event) 
   event.preventDefault();
   const input = document.querySelector("#lookup-input").value.trim();
   const result = document.querySelector("#lookup-result");
-  result.className = "lookup-result"; result.textContent = "Đang tìm thông tin PhishLens đã xác minh…";
+  result.className = "lookup-result"; result.textContent = "Đang kiểm tra dữ liệu PhishLens và các danh sách công khai…";
   try {
     const candidate = /^https?:\/\//i.test(input) ? input : `https://${input}`;
     let parsed;
     try { parsed = new URL(candidate); } catch { throw new Error("invalid_address"); }
     if (!["http:", "https:"].includes(parsed.protocol) || !parsed.hostname || parsed.username || parsed.password) throw new Error("invalid_address");
-    const response = await fetch(`/api/lookup?url=${encodeURIComponent(parsed.origin)}`);
-    const data = await response.json(); if (!response.ok) throw new Error(data.error || "Không tra cứu được.");
+    const [lookupResult, publicThreats] = await Promise.allSettled([
+      fetch(`/api/lookup?url=${encodeURIComponent(parsed.origin)}`),
+      lookupPublicThreatData(parsed.hostname.toLowerCase().replace(/\.$/, ""))
+    ]);
+    let data = { status: "Chưa có dữ liệu", message: "Chưa tra cứu được kho cảnh báo PhishLens đã xác minh." };
+    let lookupUnavailable = lookupResult.status !== "fulfilled";
+    if (!lookupUnavailable) {
+      try {
+        const response = lookupResult.value;
+        data = await response.json();
+        if (!response.ok) lookupUnavailable = true;
+      } catch { lookupUnavailable = true; }
+    }
+    const threats = publicThreats.status === "fulfilled" ? publicThreats.value : {
+      phishingStatus: "unavailable", phishingMatch: false, vietnamStatus: "unavailable", vietnamMatches: []
+    };
     result.replaceChildren();
-    const icon = document.createElement("div"); icon.className = "empty-mark"; icon.textContent = data.status === "Đã được xác minh" ? "!" : data.status === "Đang xem xét" ? "…" : "⌕";
+    const foundPublicThreat = threats.phishingMatch || threats.vietnamMatches.length > 0;
+    const icon = document.createElement("div"); icon.className = "empty-mark"; icon.textContent = data.status === "Đã được xác minh" || foundPublicThreat ? "!" : data.status === "Đang xem xét" ? "…" : "⌕";
     const content = document.createElement("div");
-    const heading = document.createElement("b"); heading.textContent = data.status; content.append(heading);
+    const heading = document.createElement("b"); heading.textContent = data.status === "Đã được xác minh" ? "Cảnh báo PhishLens đã xác minh" : foundPublicThreat ? "Tìm thấy cảnh báo trong danh sách công khai" : data.status; content.append(heading);
     if (data.item) {
       const checkedAt = data.item.updatedAt ? new Date(data.item.updatedAt).toLocaleDateString("vi-VN") : "chưa rõ";
       const p = document.createElement("p"); p.textContent = `${data.item.demo ? "Tình huống minh họa · " : ""}${data.item.hostname} · ${data.item.type}. ${data.item.summary} Trạng thái: ${data.item.status}; cập nhật ${checkedAt}.`; content.append(p);
       if (data.item.sourceUrl) { const link = document.createElement("a"); link.href = data.item.sourceUrl; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Mở nguồn đã được quản trị viên đối chiếu ↗"; content.append(link); }
       if (!data.item.demo) { const note = document.createElement("small"); note.textContent = `Nguồn đăng: ${data.item.source}. Cảnh báo áp dụng cho tên miền được ghi nhận; không có nghĩa mọi trang trên đó đều lừa đảo.`; content.append(note); }
     }
-    else { const p = document.createElement("p"); p.textContent = data.message; content.append(p); }
+    else if (data.status === "Đang xem xét") { const p = document.createElement("p"); p.textContent = data.message; content.append(p); }
+    if (threats.phishingMatch) {
+      const p = document.createElement("p"); p.textContent = "Tên miền khớp feed phishing ACTIVE của Phishing.Database. Đây là tín hiệu từ danh sách công khai, không phải xác minh độc lập rằng website hiện vẫn độc hại."; content.append(p);
+      const link = document.createElement("a"); link.href = "https://github.com/Phishing-Database/Phishing.Database"; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Nguồn: Phishing.Database ↗"; content.append(link);
+    }
+    for (const record of threats.vietnamMatches) {
+      const p = document.createElement("p");
+      const reportDate = record.reportedAt ? new Date(`${record.reportedAt}T00:00:00Z`).toLocaleDateString("vi-VN") : "không rõ ngày";
+      p.textContent = record.kind === "impersonation"
+        ? `${record.historical ? "Báo cáo lịch sử" : "Báo cáo giả mạo"}: tên miền từng được ${record.sourceName} nêu liên quan đến ${record.target || "một tổ chức"} (${reportDate}).${record.historical ? " Báo cáo đã quá 12 tháng nên chỉ dùng làm thông tin tham khảo." : " Đây là cảnh báo theo báo cáo, không khẳng định website hiện vẫn hoạt động."}`
+        : `Danh sách ${record.sourceName} nêu tên miền này trong nhóm website cờ bạc/vi phạm (${reportDate}); đây là nhóm cảnh báo riêng, không phải kết luận phishing.`;
+      content.append(p);
+      if (record.sourceUrl) { const link = document.createElement("a"); link.href = record.sourceUrl; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = `Nguồn: ${record.sourceName} ↗`; content.append(link); }
+    }
+    if (!data.item && data.status !== "Đang xem xét" && !foundPublicThreat) {
+      const p = document.createElement("p");
+      p.textContent = threats.phishingStatus === "available" && threats.vietnamStatus === "available" && !lookupUnavailable
+        ? "Không tìm thấy cảnh báo đã xác minh hoặc mục khớp trong các danh sách đang tra cứu. Điều này không chứng minh website an toàn."
+        : "Chưa tìm thấy cảnh báo trong dữ liệu hiện có; một số danh sách công khai chưa tải được. Điều này không chứng minh website an toàn.";
+      content.append(p);
+    }
+    if (lookupUnavailable || threats.phishingStatus !== "available" || threats.vietnamStatus !== "available") {
+      const note = document.createElement("small"); note.textContent = "Một phần danh sách công khai chưa tải được; kết quả PhishLens đã xác minh vẫn được giữ nguyên."; content.append(note);
+    }
+    const method = document.createElement("small"); method.textContent = "Extension còn kiểm tra cấu trúc URL ngay trên thiết bị; trang tra cứu này đối chiếu cảnh báo và danh sách công khai theo hostname."; content.append(method);
     result.append(icon, content);
-    result.classList.add(data.status === "Đã được xác minh" ? "state-verified" : data.status === "Đang xem xét" ? "state-review" : "state-none");
+    result.classList.add(data.status === "Đã được xác minh" ? "state-verified" : data.status === "Đang xem xét" ? "state-review" : foundPublicThreat ? "state-feed" : "state-none");
   } catch (error) { result.textContent = error.message === "invalid_address" ? "Hãy nhập tên miền hoặc địa chỉ website hợp lệ." : "Chưa tra cứu được lúc này. Hãy kiểm tra kết nối và thử lại."; }
 });
 

@@ -44,6 +44,7 @@ nav .admin-link { padding: 9px 13px; border: 1px solid #d9dfdf; border-radius: 7
 .lookup-result.state-verified { border-color: #b8dfc9; background: #f0f9f3; }
 .lookup-result.state-review { border-color: #f0dba8; background: #fffaf0; }
 .lookup-result.state-none { border-color: #d8e0e5; background: #fff; }
+.lookup-result.state-feed { border-color: #edc77a; background: #fff9e9; color: #59451d; }
 .guide-section { border-top: 1px solid var(--line); }
 .guide-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 13px; margin-top: 32px; }
 .guide-card { padding: 20px; border: 1px solid var(--line); border-radius: 10px; background: white; }
